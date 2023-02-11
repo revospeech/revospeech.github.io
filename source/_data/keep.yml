@@ -11,10 +11,11 @@
 # ---------------------------------------------------------------------------------------
 base_info:
   # Your blog website title
-  title: Keep Theme
+  title: RevoSpeech
 
   # Your blog website author name
-  author: Keep Team
+  author: revospeech
+
 
 # ---------------------------------------------------------------------------------------
 # Theme style settings
@@ -29,7 +30,7 @@ style:
   logo: /images/logo.svg
 
   # Favicon (You can use local image or image external link)
-  favicon: /images/logo.svg
+  favicon: https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230211/favicon.jpg
 
   # Avatar (You can use local image or image external link)
   avatar: /images/avatar.svg
