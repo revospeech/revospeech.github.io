@@ -1,27 +1,56 @@
-# Keep Theme Starter
+# Hexo Deploy GitHub Pages Action
 
+This GitHub action for building and deploying Hexo project to GitHub pages.
 
-## Get start | 快速开始
+## Getting Started
 
-### Install dependencies | 安装依赖
+You can view an example of this below.
 
-```bash
-npm install
+```yml
+name: Hexo Deploy GitHub Pages
+on:
+  push:
+    branches:
+      - master
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+
+    - name: Build and Deploy
+      uses: theme-keep/hexo-deploy-github-pages-action@master
+      env:
+        PERSONAL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        # The repository the action should deploy to.
+        PUBLISH_REPOSITORY: theme-keep/site
+
+        # The branch the action should deploy to.
+        BRANCH: master
 ```
 
-### Run the project | 运行项目
+if you want to make the workflow only triggers on push events to specific branches, you can like this: 
 
-```bash
-npm run server
+```yml
+on:
+  push:	
+    branches:	
+      - master
 ```
 
-### Configuring theme | 配置主题
+## Configuration
 
-Please configure the `source/_data/keep.yml` file.
+The `env` portion of the workflow **must** be configured before the action will work. You can add these in the `env` section found in the examples above. Any `secrets` must be referenced using the bracket syntax and stored in the GitHub repositories `Settings/Secrets` menu. You can learn more about setting environment variables with GitHub actions [here](https://help.github.com/en/articles/workflow-syntax-for-github-actions#jobsjob_idstepsenv).
 
-请对 `source/_data/keep.yml` 文件进行配置。
+Below you'll find a description of what each option does.
 
+| Key  | Value Information | Type | Default | Required |
+| ------------- | ------------- | ------------- | ------------- | ------------- |
+| `PERSONAL_TOKEN`  | Depending on the repository permissions you may need to provide the action with a GitHub Personal Access Token in order to deploy. You can [learn more about how to generate one here](https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line). **This should be stored as a secret**. | `secrets` |  | **Yes** |
+| `PUBLISH_REPOSITORY`  | The repository the action should deploy to. for example `theme-keep/site` | `env` |  | **Yes** |
+| `BRANCH`  | The branch the action should deploy to. for example `master` | `env` | `gh-pages` | **Yes** |
+| `PUBLISH_DIR`  | The folder the action should deploy. for example `./public`| `env` | `./public` | No |
 
-## Documents | 文档
-
-https://keep-docs.xpoet.cn/tutorial/configuration-guide/base_info.html

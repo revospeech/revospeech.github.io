@@ -5,10 +5,10 @@ db.json
 node_modules/
 public/
 .deploy*/
-_multiconfig.yml
 yarn.lock
 package-lock.json
-.vscode/*
+
+# IDEs and editors
 /.idea
 .project
 .classpath
@@ -16,3 +16,20 @@ package-lock.json
 *.launch
 .settings/
 *.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+
+# misc
+/.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+npm-debug.log
+testem.log
+/typings
+
+# e2e
+/e2e/src/*.js
+/e2e/src/*.map
+/cypress/screenshots
