@@ -1,0 +1,105 @@
+.gitalk-comment-container {
+
+  transition-t("color, background", "0, 0", "0.2, 0.2", "ease, ease")
+
+
+  .gt-container {
+
+    .gt-btn {
+      background-color var(--primary-color-light-1)
+      border 1px solid var(--primary-color-light-1)
+      transition-t("color, background", "0, 0", "0.2, 0.2", "ease, ease")
+    }
+
+
+    .gt-initing-text {
+      color var(--text-color-3)
+    }
+
+
+    .gt-meta {
+      .gt-counts {
+        a {
+          color var(--primary-color)
+        }
+        color var(--text-color-3)
+      }
+
+      .gt-user {
+        .gt-user-name {
+          color var(--text-color-3)
+        }
+
+        svg {
+          path {
+            fill var(--text-color-3)
+          }
+        }
+      }
+
+      .gt-popup {
+        top 2.6rem
+        background var(--background-color-2)
+        border 1px solid var(--border-color)
+      }
+    }
+
+
+    .gt-header {
+      .gt-header-comment {
+        textarea {
+          color var(--text-color-3)
+          background-color var(--background-color-2)
+          transition-t("color, background", "0, 0", "0.2, 0.2", "ease, ease")
+        }
+
+        .gt-header-controls {
+
+          .gt-btn-preview {
+            color #fff
+            background-color var(--primary-color-light-1)
+          }
+        }
+      }
+    }
+
+
+    .gt-comments {
+      .gt-comments-null {
+        color var(--text-color-4)
+      }
+
+      .gt-comment-content {
+        background-color var(--background-color-2)
+        transition-t("color, background", "0, 0", "0.2, 0.2", "ease, ease")
+
+        &:hover {
+          box-shadow none
+        }
+
+        .gt-comment-body {
+          p
+          li {
+            color var(--text-color-3)
+          }
+
+          .email-fragment {
+            color var(--text-color-3)
+          }
+        }
+
+        .notranslate {
+          background-color var(--background-color-3)
+
+          code {
+            color var(--text-color-2)
+          }
+        }
+
+        pre {
+          background-color var(--background-color-3)
+        }
+      }
+    }
+  }
+}

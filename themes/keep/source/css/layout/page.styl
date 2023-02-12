@@ -1,0 +1,168 @@
+.page-container {
+  position relative
+  box-sizing border-box
+  width 100%
+  height auto
+  background var(--background-color-1)
+
+  .page-main-content {
+    position relative
+    box-sizing border-box
+    padding-top $header-height
+
+    &.is-home {
+      .transparent-1 {
+        background var(--header-transparent-background-1)
+        -webkit-backdrop-filter blur(4px)
+        backdrop-filter blur(4px)
+      }
+
+      .transparent-2 {
+        background var(--header-transparent-background-2)
+        -webkit-backdrop-filter blur(5px)
+        backdrop-filter blur(5px)
+      }
+    }
+
+
+    .header-shrink & {
+      padding-top $header-shrink-height
+
+
+      +keep-tablet() {
+        padding-top $header-shrink-height * 0.9
+      }
+
+      +keep-mobile() {
+        padding-top $header-shrink-height * 0.8
+      }
+    }
+
+
+    +keep-tablet() {
+      padding-top $header-height * 0.9
+    }
+
+
+    +keep-mobile() {
+      padding-top $header-height * 0.8
+    }
+
+
+    .page-main-content-top {
+      position fixed
+      top 0
+      right 0
+      z-index $z-index-5
+      box-sizing border-box
+      width 100%
+      height $header-height
+      transition-t("transform, height", "0, 0", "0.3, 0.2", "ease-out, ease")
+
+      &.hide {
+        transform translateY(-105%)
+      }
+
+      .header-shrink & {
+        height $header-shrink-height
+
+        +keep-tablet() {
+          height $header-shrink-height * 0.9
+        }
+
+        +keep-mobile() {
+          height $header-shrink-height * 0.8
+        }
+      }
+
+
+      +keep-tablet() {
+        height $header-height * 0.9
+      }
+
+
+      +keep-mobile() {
+        height $header-height  * 0.8
+      }
+    }
+
+
+    .page-main-content-middle {
+      display flex
+      justify-content center
+      box-sizing border-box
+      width 100%
+      padding $component-spacing-value 0
+
+      +keep-tablet() {
+        padding $component-spacing-value * 0.8 0
+      }
+
+      +keep-mobile() {
+        padding $component-spacing-value * 0.6 0
+      }
+
+      .main-content {
+        position relative
+        box-sizing border-box
+        width $main-content-width
+        max-width $content-max-width
+        height 100%
+        transition-t("max-width, width", "0, 0", "0.1, 0.1", "ease, ease")
+
+        .has-toc & {
+          max-width $has-toc-content-max-width
+        }
+
+        +keep-tablet() {
+          width $main-content-width-tablet
+        }
+
+        +keep-mobile() {
+          width $main-content-width-mobile
+        }
+      }
+    }
+
+
+    .page-main-content-bottom {
+      width 100%
+    }
+  }
+
+
+  .post-tools {
+    position fixed
+    top $header-height + $component-spacing-value
+    left 'calc((100vw - %s / 2) - 5rem)' % $content-max-width
+    box-sizing border-box
+    opacity 0
+    transition-t("top, transform, opacity, left", "0, 0, 0.2, 0", "0.2, 0.2, 0.2, 0.2", "ease, ease, ease, ease")
+
+    .header-shrink & {
+      top $header-shrink-height + $component-spacing-value
+
+      +keep-tablet() {
+        top $header-shrink-height * 0.9 + $component-spacing-value
+      }
+    }
+
+
+    +keep-tablet() {
+      top $header-height * 0.9 + $component-spacing-value
+      transform scale(0.82)
+    }
+
+
+    +keep-mobile() {
+      display none
+    }
+  }
+
+
+  .right-bottom-side-tools {
+    position fixed
+    right 0
+    bottom 5%
+  }
+}

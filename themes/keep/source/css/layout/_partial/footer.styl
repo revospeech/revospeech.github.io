@@ -1,0 +1,45 @@
+.footer {
+  color var(--text-color-4)
+  font-size 1rem
+
+  a {
+    color var(--text-color-4)
+
+    &:hover {
+      color var(--primary-color)
+    }
+  }
+
+  .info-container {
+    display flex
+    flex-direction column
+    align-items center
+    justify-content center
+    padding-bottom 1rem
+
+    .info-item {
+      margin 0.2rem 0
+      color var(--text-color-4)
+
+      &.deploy-info {
+        display flex
+
+        a
+        .tooltip {
+          display flex
+          align-items center
+        }
+
+        img {
+          height 1.2rem
+          margin 0 0.4rem
+        }
+      }
+    }
+  }
+
+
+  .icon-animate {
+    animation icon-animate 1.2s ease-in-out infinite
+  }
+}

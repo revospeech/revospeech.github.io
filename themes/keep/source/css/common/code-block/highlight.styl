@@ -1,0 +1,215 @@
+@import "code-theme.styl"
+
+$code-block {
+  margin 1.5rem 0
+  padding 0
+  overflow auto
+  color var(--highlight-foreground)
+  font-size 0.96rem
+  line-height 1.5rem
+  background var(--highlight-background)
+  not-text-size-adjust()
+}
+
+
+pre
+code {
+  font-family "Source Code Pro", consolas, Menlo
+}
+
+code {
+  padding 0.4rem
+  color var(--code-foreground)
+  font-size 0.96rem
+  word-wrap break-word
+  background var(--code-background)
+  border-radius 0.2rem
+}
+
+pre {
+  @extend $code-block
+  padding 0.6rem
+
+  code {
+    padding 0
+    color var(--highlight-foreground)
+    text-shadow none
+    background none
+  }
+}
+
+.highlight {
+  @extend $code-block
+  border-bottom-right-radius 0.1rem
+  border-bottom-left-radius 0.1rem
+
+  pre {
+    margin 0
+    padding 0.6rem 0
+    border none
+  }
+
+
+  table {
+    width auto
+    margin 0
+    border none
+    border-spacing unset
+  }
+
+
+  td {
+    padding 0
+    border none
+  }
+
+  figcaption {
+    margin-bottom 1rem
+    color var(--highlight-foreground)
+    font-size 1rem
+    line-height 1rem
+
+    a {
+      float right
+      color var(--highlight-foreground)
+
+      &:hover {
+        border-bottom-color var(--highlight-foreground)
+      }
+    }
+  }
+
+  .gutter pre {
+    padding-right 0.6rem
+    padding-left 0.6rem
+    color var(--highlight-gutter-color)
+    text-align center
+    background-color var(--highlight-gutter-bg-color)
+  }
+
+  .code pre {
+    width 100%
+    padding-right 0.6rem
+    padding-left 0.6rem
+    background-color var(--highlight-background)
+  }
+
+  .line {
+    height 1.5rem
+    color var(--highlight-foreground)
+
+    .language-javascript {
+      color var(--highlight-foreground)
+    }
+
+    .attr {
+      color var(--highlight-foreground)
+    }
+
+    .string {
+      color var(--highlight-foreground)
+    }
+  }
+}
+
+
+.gutter {
+  disable-user-select()
+  color var(--highlight-gutter-color)
+  background var(--highlight-gutter-bg-color)
+
+  .line {
+    color var(--highlight-gutter-color)
+  }
+}
+
+.gist table {
+  width auto
+
+  td {
+    border none
+  }
+}
+
+pre .deletion {
+  background var(--highlight-deletion)
+}
+
+pre .addition {
+  background var(--highlight-addition)
+}
+
+pre .meta {
+  color var(--highlight-purple)
+}
+
+pre {
+
+  .comment {
+    color var(--highlight-comment)
+  }
+
+  .variable
+  .attribute
+  .tag
+  .regexp
+  .ruby .constant
+  .xml .tag .title
+  .xml .pi
+  .xml .doctype
+  .html .doctype
+  .css .id
+  .css .class
+  .css .pseudo {
+    color var(--highlight-red)
+  }
+
+  .property {
+    color var(--highlight-blue)
+  }
+
+  .number
+  .preprocessor
+  .built_in
+  .literal
+  .params
+  .constant
+  .command {
+    color var(--highlight-orange)
+  }
+
+  .ruby .class .title
+  .css .rules .attribute
+  .string
+  .value
+  .inheritance
+  .header
+  .ruby .symbol
+  .xml .cdata
+  .special
+  .number
+  .formula {
+    color var(--highlight-green)
+  }
+
+  .title
+  .css .hexcolor {
+    color var(--highlight-aqua)
+  }
+
+  .function
+  .python .decorator
+  .python .title
+  .ruby .function .title
+  .ruby .title .keyword
+  .perl .sub
+  .javascript .title
+  .coffeescript .title {
+    color var(--highlight-blue)
+  }
+
+  .keyword
+  .javascript .function {
+    color var(--highlight-purple)
+  }
+}

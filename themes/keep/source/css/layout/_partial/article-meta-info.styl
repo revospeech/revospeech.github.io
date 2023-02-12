@@ -1,0 +1,67 @@
+.article-meta-info {
+  font-size 0.8rem
+
+  .article-meta-item {
+    margin-right 0.6rem
+    color var(--text-color-4)
+
+    &:last-child {
+      margin-right 0
+    }
+  }
+
+  .article-date {
+
+    .mobile {
+      display none
+    }
+
+    +keep-tablet() {
+      .pc {
+        display none
+      }
+
+      .mobile {
+        display inline
+      }
+    }
+  }
+
+
+  .article-update-date {
+    +keep-tablet() {
+      display none
+    }
+  }
+
+  .article-tags
+  .article-categories {
+    display inline
+
+    ul
+    li {
+      display inline
+    }
+
+    a {
+      color var(--text-color-4)
+
+      &:hover {
+        color var(--primary-color)
+      }
+    }
+  }
+
+  .article-tags {
+    +keep-tablet() {
+      display none
+    }
+  }
+
+  .article-min2read
+  .article-wordcount {
+    +keep-mobile() {
+      display none
+    }
+  }
+}

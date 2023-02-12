@@ -1,0 +1,18 @@
+<div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        <% if (theme.toc.enable) { %>
+            <li class="tools-item flex-center toggle-show-toc">
+                <i class="fas fa-list"></i>
+            </li>
+        <% } %>
+
+        <!-- go comment -->
+        <% if (theme.comment.enable === true && theme.comment.hasOwnProperty(theme.comment.use)) { %>
+            <li class="tools-item flex-center go-to-comments">
+                <i class="fas fa-comment"></i>
+                <span class="post-comments-count"></span>
+            </li>
+        <% } %>
+    </ul>
+</div>

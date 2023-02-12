@@ -1,0 +1,309 @@
+@import 'variables.styl'
+@import 'animated.styl'
+@import 'keep-theme.styl'
+
+// ======================================================================
+// all
+// ======================================================================
+* {
+  // ====================================
+  //  transition
+  // ====================================
+  transition-g()
+
+
+  // ====================================
+  // scrollbar
+  // ====================================
+
+  &::-webkit-scrollbar {
+    width 0.4rem
+    height 0.4rem
+    transition all 0.2s ease
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background var(--scrollbar-color)
+    border-radius 0.1rem
+  }
+
+  &::-webkit-scrollbar-track {
+    background var(--scrollbar-background-color)
+  }
+}
+
+
+// ======================================================================
+// html, body
+// ======================================================================
+html
+body {
+  position relative
+  width 100%
+  height 100%
+  margin 0
+  padding 0
+  color var(--text-color-3)
+  font-weight $default-font-weight
+  font-size $default-font-size
+  font-family $default-font-family
+  line-height $default-font-line-height
+  letter-spacing 0.2px
+  background var(--background-color-1)
+
+  &::-webkit-scrollbar {
+    width 0.6rem
+    height 0.6rem
+  }
+
+  +keep-tablet() {
+    &::-webkit-scrollbar {
+      width 0.5rem
+      height 0.5rem
+    }
+  }
+
+  +keep-mobile() {
+    &::-webkit-scrollbar {
+      width 0.4rem
+      height 0.4rem
+    }
+  }
+
+  +keep-tablet() {
+    font-size $default-font-size * 0.96
+    line-height $default-font-line-height * 0.96
+  }
+
+
+  +keep-mobile() {
+    font-size $default-font-size * 0.9
+    line-height $default-font-line-height * 0.9
+  }
+}
+
+
+// ======================================================================
+// selection
+// ======================================================================
+::selection {
+  color #fff
+  background var(--selection-color)
+}
+
+
+// ======================================================================
+// ul, ol, li
+// ======================================================================
+ul
+ol
+li {
+  margin 0
+  padding 0
+  list-style none
+}
+
+
+// ======================================================================
+// a
+// ======================================================================
+a {
+  color var(--text-color-3)
+  text-decoration none
+
+  i
+  span {
+    color var(--text-color-3)
+  }
+
+  &:hover
+  &:active {
+    color var(--primary-color)
+    text-decoration none !important
+
+    i
+    span {
+      color var(--primary-color)
+    }
+  }
+}
+
+
+// ======================================================================
+// img
+// ======================================================================
+img {
+  &[lazyload] {
+    position relative
+    box-sizing border-box
+    width 8rem
+    height 8rem
+    box-shadow none !important
+    cursor not-allowed
+    pointer-events none
+
+    &::before {
+      position absolute
+      top 0
+      left 0
+      display block
+      width 100%
+      height 100%
+      background var(--background-color-1)
+      content ''
+      transition-t("background", "0", "0.2", "ease")
+    }
+
+    &::after {
+      position absolute
+      top 0
+      right 0
+      bottom 0
+      left 0
+      display block
+      width 2rem
+      height 2rem
+      margin auto
+      border 2px solid var(--text-color-6)
+      border-top-color var(--selection-color)
+      border-left-color var(--selection-color)
+      border-radius 50%
+      animation img-loading-animation 750ms infinite linear
+      content ''
+      transition-t("border", "0", "0.2", "ease")
+    }
+  }
+}
+
+
+// ======================================================================
+// button
+// ======================================================================
+button {
+  margin 0
+  padding 0
+  background transparent
+  border 0
+  outline none
+  cursor pointer
+}
+
+.btn {
+  position relative
+  display inline-block
+  padding 0.4rem 1rem
+  white-space nowrap
+  text-align center
+  background var(--background-color-1)
+  border-radius 5px
+  cursor pointer
+
+  hover-style(true, 1.06, 1.06)
+
+  &:hover {
+    color var(--background-color-1)
+    background var(--primary-color)
+  }
+}
+
+
+// ======================================================================
+// flex center
+// ======================================================================
+.flex-center {
+  display flex
+  align-items center
+  justify-content center
+}
+
+
+// ======================================================================
+// clear float
+// ======================================================================
+.clear {
+  &::after {
+    display block
+    clear both
+    height 0
+    overflow hidden
+    visibility hidden
+    content ''
+  }
+}
+
+
+// ======================================================================
+// tooltip
+// ======================================================================
+.tooltip {
+  position relative
+  box-sizing border-box
+
+  &:hover {
+    .tooltip-content {
+      display inline-block
+    }
+  }
+
+  &.show-img {
+    .tooltip-content {
+      display none !important
+    }
+  }
+
+  .tooltip-content {
+    position absolute
+    top -0.4rem
+    left 50%
+    z-index $z-index-9
+    display none
+    box-sizing border-box
+    padding 0.2rem 0.6rem
+    color var(--text-color-6)
+    font-size 0.8rem
+    letter-spacing 0.8px
+    white-space nowrap
+    background var(--text-color-1)
+    border-radius 0.3rem
+    transform translateX(-50%) translateY(-100%)
+    transition-t("display", "0", "0.2", "ease")
+    disable-user-select()
+  }
+}
+
+
+.tooltip-img {
+  position relative
+  box-sizing border-box
+
+  &.show-img {
+    .tooltip-img-box {
+      display flex
+    }
+  }
+
+  .tooltip-img-box {
+    position absolute
+    top -0.4rem
+    left 50%
+    z-index $z-index-8
+    display none
+    align-items center
+    justify-content center
+    box-sizing border-box
+    min-height 6rem
+    background var(--text-color-6)
+    border 0.2rem solid var(--text-color-3)
+    border-radius 0.3rem
+    transform translateX(-50%) translateY(-100%)
+    transition-t("display", "0", "0.2", "ease")
+    disable-user-select()
+
+    img {
+      display block
+      max-height 10rem
+    }
+  }
+}
+
+

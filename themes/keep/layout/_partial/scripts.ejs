@@ -1,0 +1,47 @@
+<%- __js([
+    'js/utils.js',
+    'js/main.js',
+    'js/header-shrink.js',
+    'js/back2top.js',
+    'js/dark-light-toggle.js'
+]) %>
+
+<%
+const {
+    local_search: t_local_search,
+    code_copy: t_code_copy,
+    code_block: t_code_block,
+    lazyload: t_lazyload,
+    toc: t_toc,
+    pjax: t_pjax,
+    comment: t_comment
+} = theme
+%>
+
+<% if (t_local_search?.enable === true) { %>
+    <%- __js('js/local-search.js') %>
+<% } %>
+
+<% if (t_code_copy?.enable === true || t_code_block?.enable === true || t_code_block?.tools?.enable === true) { %>
+    <%- __js('js/code-block.js') %>
+<% } %>
+
+<% if (t_lazyload?.enable === true) { %>
+    <%- __js('js/lazyload.js') %>
+<% } %>
+
+<div class="post-scripts<%= theme.pjax?.enable === true ? ' pjax' : '' %>">
+    <% if (is_post()) { %>
+        <%- __js('js/post-helper.js') %>
+        <% if (t_toc?.enable === true || t_comment?.enable === true) { %>
+            <%- __js('js/libs/anime.min.js') %>
+        <% } %>
+        <% if (t_toc?.enable === true) { %>
+            <%- __js('js/toc.js') %>
+        <% } %>
+    <% } %>
+</div>
+
+<% if (t_pjax?.enable === true) { %>
+    <%- partial('pjax/pjax') %>
+<% } %>
