@@ -6,7 +6,7 @@ const {
 } = theme.footer
 const { author: bi_author } = theme.base_info
 const { author: hexo_author } = config
-const { site_uv: bsz_site_uv, site_pv: bsz_site_pv, enable: bsz_enable } = theme.website_count.busuanzi_count
+const { site_uv: bsz_site_uv, site_pv: bsz_site_pv, site_tv: bsz_site_tv, enable: bsz_enable } = theme.website_count.busuanzi_count
 %>
 <footer class="footer">
     <div class="info-container">
@@ -21,10 +21,21 @@ const { site_uv: bsz_site_uv, site_pv: bsz_site_pv, enable: bsz_enable } = theme
                 &nbsp;<a href="/"><%= bi_author || hexo_author %></a>
             <% } %>
         </div>
+        <%
+        let temp_total_count = null;
+        try {
+            temp_total_count = totalcount(site);
+        } catch (e) {
+            temp_total_count = 0;
+        }
+        %>
         <% if (bsz_enable === true) { %>
             <script async <%= theme.pjax.enable === true ? 'data-pjax' : '' %>
                     src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
             <div class="website-count info-item">
+                <% if (bsz_site_tv) { %>
+                    <%- __('site_tv') %>&nbsp;<%= temp_total_count %>
+                <% } %>
                 <% if (bsz_site_uv) { %>
                     <%- __('site_uv') %>&nbsp;<span id="busuanzi_value_site_uv"></span>&ensp;
                 <% } %>
