@@ -58,15 +58,15 @@ style:
     header_transparent: false  # Option values: true | false
 
     # First screen background image (You can use local image or image external link)
-    background_img: https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230212/background-mask.jpg
+    background_img: https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230212/background-mask-grey.jpg
 
     # First screen description
     # You can use the "||" to begin a newline, maximum is two lines.
-    description: 
+    description: Revive and Evolve || To The Future
 
     # If you want to customize the first screen font color, you can fill in here (e.g. "#0066CC")
     # Otherwise use the theme default font color
-    font_color:
+    font_color: "#E9E9E9" # 亮灰色
 
     # If enable hitokoto, first screen description is different every time when you enter the site
     hitokoto: false  # Option values: true | false
@@ -107,6 +107,7 @@ social_contact:
     # If you want to click open the picture, you need to add a prefix "img |",
     # at the same time change your link to the image link.
     # e.g. [ weixin: img | https://x.com/images/wechat.png ] or [ weixin: img | ./images/wechat.png ]
+    email: revospeech@163.com # Email
     github: https://github.com/revospeech # GitHub
     # weixin: img | 公众号图片外链        # WeChat
     qq:              # QQ
@@ -114,7 +115,6 @@ social_contact:
     zhihu:           # ZhiHu
     twitter:         # Twitter
     facebook:        # Facebook
-    email: revospeech@163.com # Email
 
 # ---------------------------------------------------------------------------------------
 # Home page article block display settings
