@@ -3,17 +3,17 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Keep Theme
-subtitle: Keep theme quick starter
+title: RevoSpeech
+subtitle: Revive and Evolution
 description: ''
 keywords:
-author: Keep Team
+author: RevoSpeech
 language: zh-CN  # zh-CN | zh-TW | en
 timezone: ''
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
-url: http://example.com
+url: https://revospeech.github.io
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 pretty_urls:
@@ -98,6 +98,19 @@ ignore:
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
 theme: keep
+
+# Search
+search:
+  path: search.json
+  field: post
+  content: true
+  format: striptags
+
+# RSS
+feed:
+  type: atom
+  path: atom.xml
+  limit: 20
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
