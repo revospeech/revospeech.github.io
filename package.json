@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "hexo": "^6.3.0",
+    "hexo-filter-mathjax": "^0.9.0",
     "hexo-generator-archive": "^2.0.0",
     "hexo-generator-category": "^2.0.0",
     "hexo-generator-feed": "^3.0.0",
