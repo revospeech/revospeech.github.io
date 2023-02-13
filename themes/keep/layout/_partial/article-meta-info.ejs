@@ -8,8 +8,8 @@ const ami_is_updated = articleObject.date !== articleObject.updated
         <% } else { %>
             <i class="fas fa-edit"></i>&nbsp;
         <% } %>
-        <span class="pc"><%= date(articleObject.date, is_post() ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD') %></span>
-        <span class="mobile"><%= date(articleObject.date, is_post() ? 'YYYY-MM-DD HH:mm' : 'YYYY-MM-DD') %></span>
+        <span class="pc"><%= date(articleObject.date, is_post() ? 'YYYY-MM-DD' : 'YYYY-MM-DD') %></span>
+        <span class="mobile"><%= date(articleObject.date, is_post() ? 'YYYY-MM-DD' : 'YYYY-MM-DD') %></span>
     </span>
     <% if (ami_is_updated) { %>
         <span class="article-update-date article-meta-item">
