@@ -1,6 +1,6 @@
 ---
 title: RevoSpeech 智能语音工作指南
-date: 2023-02-12
+date: 2023-01-01
 tags: [语音识别, 语音合成]
 categories: [技术思考]
 copyright_info: true

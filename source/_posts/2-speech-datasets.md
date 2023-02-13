@@ -1,6 +1,6 @@
 ---
 title: 开源语音数据库汇总
-date: 2023-02-13
+date: 2023-01-02
 tags: [语音识别, 语音合成]
 categories: 数据集
 copyright_info: true
@@ -47,7 +47,7 @@ This is a curated list of open speech datasets for speech-related research (main
 
 ## List of ASR corpora
 
-### datasets can be downloaded directly
+### directly downloadable
 | **id** | **Name** | **Language** | **Type/Domain** | **Paper Link** | **Data Link** | **Size (Hours)** |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | 1 | Librispeech | English | Reading | [[paper]](https://www.danielpovey.com/files/2015_icassp_librispeech.pdf) | [[dataset]](https://www.openslr.org/12/) | 960 |
@@ -126,7 +126,7 @@ This is a curated list of open speech datasets for speech-related research (main
 | 74 | ReazonSpeech | Japanese | Misc | [[paper]](https://research.reazon.jp/_static/reazonspeech_nlp2023.pdf) [[code]](https://github.com/reazon-research/ReazonSpeech) | [[dataset]](https://huggingface.co/datasets/reazon-research/reazonspeech) | 15k |
 
 
-### datasets can be downloaded after application
+### need application
 
 | **Index** | **Name** | **Language** | **Type/Domain** | **Paper Link** | **Data Link** | **Size (Hours)** |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
