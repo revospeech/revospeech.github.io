@@ -122,11 +122,12 @@ This is a curated list of open speech datasets for speech-related research (main
 | 72 | Ukrainian Speech | Ukrainian | Misc | - | [[dataset]](https://github.com/egorsmkv/speech-recognition-uk#-datasets) | 1300+ |
 | 73 | UCLA-ASR-corpus | Multilingual | Misc | - | [[dataset]](https://github.com/Open-Speech-EkStep/ULCA-asr-dataset-corpus) | unsup(15k)<br>sup(9k) |
 | 74 | ReazonSpeech | Japanese | Misc | [[paper]](https://research.reazon.jp/_static/reazonspeech_nlp2023.pdf) [[code]](https://github.com/reazon-research/ReazonSpeech) | [[dataset]](https://huggingface.co/datasets/reazon-research/reazonspeech) | 15k |
+| 75 | Bundestag | German | Debate | [[paper]](https://arxiv.org/pdf/2302.06008v1.pdf) | [[dataset]](https://opendata.iisys.de/datasets.html#bundestag) | sup(610)<br>unsup(1038) |
 
 
 ### need application
 
-| **Index** | **Name** | **Language** | **Type/Domain** | **Paper Link** | **Data Link** | **Size (Hours)** |
+| **id** | **Name** | **Language** | **Type/Domain** | **Paper Link** | **Data Link** | **Size (Hours)** |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | 1 | Fisher | English | Conversational | [[paper]](http://www.lrec-conf.org/proceedings/lrec2004/pdf/767.pdf) | [[dataset]](https://catalog.ldc.upenn.edu/search) | 2000 |
 | 2 | WenetSpeech | Mandarin | Misc | [[paper]](https://arxiv.org/pdf/2110.03370.pdf) | [[dataset]](https://www.openslr.org/121) | sup(10k)<br>weaksup(2.4k)<br>unsup(10k) |
@@ -164,7 +165,7 @@ This is a curated list of open speech datasets for speech-related research (main
 | 34 | Modality Corpus | Multilingual | Audio-Visual | [[paper]](https://link.springer.com/content/pdf/10.1007/s10844-016-0438-z.pdf) | [[dataset]](http://www.modality-corpus.org/) | 30 + |
 | 35 | Hindi-Tamil-English | Multilingual | Misc | - | [[dataset]](https://sites.google.com/view/indian-language-asrchallenge/home) | 690 |
 | 36 | English-Vietnamese Corpus | English, Vietnamese | Misc | [[paper]](https://arxiv.org/pdf/2208.04243.pdf) | [[dataset]](https://github.com/VinAIResearch/PhoST) | 500+ |
-| 37 | OLKAVS | Korean | Misc | [[paper]](https://arxiv.org/pdf/2301.06375.pdf) [[code]](https://github.com/IIP-Sogang/olkavs-avspeech) | [[dataset]](https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=realm&dataSetSn=538) | 1150 |
+| 37 | OLKAVS | Korean | Audio-Visual | [[paper]](https://arxiv.org/pdf/2301.06375.pdf) [[code]](https://github.com/IIP-Sogang/olkavs-avspeech) | [[dataset]](https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=realm&dataSetSn=538) | 1150 |
 
 
 ## References
