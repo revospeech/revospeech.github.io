@@ -16,11 +16,15 @@ comment: false
 
 ### Create a new post
 
-
+#### Bilibili Videos
 <div style="position: relative; width: 100%; height: 0; padding-bottom: 75%;">
     <iframe src="//player.bilibili.com/player.html?aid=73183667&bvid=BV1eE411y7G9&cid=125341177&page=16"  scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="position: absolute; width: 100%; height: 100%; left: 0; top: 0;"></iframe>
 </div>
 
+#### YouTube Videos
+<div style="position: relative; width: 100%; height: 0; padding-bottom: 75%;">
+    <iframe src="https://www.youtube.com/embed/_xkZwJ0H9IU" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="position: absolute; width: 100%; height: 100%; left: 0; top: 0;"></iframe>
+</div>
 
 ``` bash
 $ hexo new "My New Post"
