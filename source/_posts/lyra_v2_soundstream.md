@@ -9,11 +9,14 @@ mathjax: true
 comment: false
 ---
 
+SoundStream 是谷歌 2021 年提出的一种神经网络音频编解码器，能够在传统编解码器通常使用的比特率下，高效地压缩语音、音乐等各类音频，SoundStream 在音频压缩、音频降噪及语音合成等任务中都有所应用。本文对 SoundStream 的原始论文进行分析和解读。
+
+<!-- more -->
+
 | 会议/期刊 | 年份 | 题目 | 链接 |
 | :---: | :---: | :---: | :---: |
 | TASLP | 2021 | SoundStream: An End-to-End<br>Neural Audio Codec | [https://arxiv.org/abs/2107.03312](https://arxiv.org/abs/2107.03312) |
 
-SoundStream 是谷歌 2021 年提出的一种神经网络音频编解码器，能够在传统编解码器通常使用的比特率下，高效地压缩语音、音乐等各类音频，SoundStream 在音频压缩、音频降噪及语音合成等任务中都有所应用。本文对 SoundStream 的原始论文进行分析和解读。
 
 ## 工作概述
 
@@ -24,7 +27,8 @@ SoundStream 是谷歌 2021 年提出的一种神经网络音频编解码器，�
 3. 训练时在量化层使用了结构化 dropout，使得单一模型能够在 3kbps 到 18kbps 不同的比特率下有效使用，相比于固定比特率的模型，音频质量的损失几乎可以忽略不计；
 4. 模型支持将音频压缩编码与音频降噪进行联合建模，达到与级联模型相近的效果。
 
-![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/model-simple.6st1c7zqzjc0.jpg)
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/model-simple.6st1c7zqzjc0.jpg" width = "650"/>
+<!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/model-simple.6st1c7zqzjc0.jpg) -->
 
 在实际应用场景中，SoundStream 可修改为低时延的设计，支持流式的编解码推理，在智能手机 CPU 上可达到实时的效果。在主观评测中，对于 24kHz 采样率下的音频，3 kbps 低比特率下的 SoundStream 比 12 kbps 的 Opus 和 9.6 kbps 的 EVS（增强语音服务，Enhance Voice Services）效果都更好。另外，SoundStream 的 Encoder 端或者 Decoder 端允许对压缩编码和语音增强进行联合建模，单一模型的实现，不会额外增加时延。
 
@@ -38,7 +42,8 @@ SoundStream 是谷歌 2021 年提出的一种神经网络音频编解码器，�
 
 > MUSHRA 分数和语音合成领域常用的 MOS (Mean Opinion Score) 分数具有类似的作用，都用来体现主观听感上音频的质量。MUSHRA 分数的优点是：能够基于更少的测试者得到统计意义上显著的结果，具体可见：[https://en.wikipedia.org/wiki/MUSHRA](https://en.wikipedia.org/wiki/MUSHRA)
 
-![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-baselines-exp.jpg)
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-baselines-exp.jpg" width = "500"/>
+<!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-baselines-exp.jpg) -->
 
 
 ## 音频编解码背景
@@ -47,7 +52,7 @@ SoundStream 是谷歌 2021 年提出的一种神经网络音频编解码器，�
 
 ### 波形编码（非参数编码）
 
-波形编码的目标是：解码重建的音频信号在波形上维持原音频信号的波形形状，准确地重建出编码前的采样点。波形编码端通常给定一个可逆的编码方式，将输入的时域波形转换到频域，再将频域的系数进行量化和`**熵编码**`；解码端则实现逆过程，从量化编码后的频域恢复出原始的时域波形。其中，量化的过程通常是基于感知模型进行比特分配（bit allocation），基于人耳对不同频率成分的感知程度不一样，给不同的频带分配不同的量化位数。
+波形编码的目标是：解码重建的音频信号在波形上维持原音频信号的波形形状，准确地重建出编码前的采样点。波形编码端通常给定一个可逆的编码方式，将输入的时域波形转换到频域，再将频域的系数进行量化和`熵编码`；解码端则实现逆过程，从量化编码后的频域恢复出原始的时域波形。其中，量化的过程通常是基于感知模型进行比特分配（bit allocation），基于人耳对不同频率成分的感知程度不一样，给不同的频带分配不同的量化位数。
 
 从上述过程可以看出，波形编码基本没有对音频的内容（语音/音乐/噪声/混响）信息进行先验假设，而是将音频信号作为一般的波形信号来处理，所以是通用的音频编解码方式。波形编解码器通常需要较高的比特率（16-64 kbps）才能恢复出很高质量的音频，在低比特率下会有较明显的量化损失。
 
@@ -79,7 +84,8 @@ SoundStream 是 Google 继 Lyra 之后提出的另一种神经网络音频编解
 
 ## SoundStream 模型结构
 
-![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-model-arch.jpg)
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-model-arch.jpg" width = "700"/>
+<!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-model-arch.jpg) -->
 
 SoundStream 编解码器是全卷积的结构。输入是原始的音频波形，Encoder 将其映射为较低采样率的 embedding 序列，RVQ 残差向量量化器对 embedding 序列进行量化；Decoder 同样是全卷积结构，输入是量化后的 embedding，预测目标是恢复出原始波形。
 
@@ -87,7 +93,9 @@ SoundStream 模型是基于波形重建和对抗训练两个损失函数进行�
 
 ### 编码器结构
 
-![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-encoder-exp.jpg)
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-encoder-exp.jpg" width = "600"/>
+
+<!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-encoder-exp.jpg) -->
 
 编码器的输入是 24 kHz 原始波形，先进入一层一维卷积，kernel_size 为 7，输出 channel 大小为 $C_{enc}$ ；再经过 $B_{enc}$ 个 EncoderBlock 模块，每个模块包含三个 ResidualUnit 残差单元和一层用于降采样的一维卷积。
 
@@ -108,7 +116,8 @@ SoundStream 模型是基于波形重建和对抗训练两个损失函数进行�
 
 ### 解码器
 
-![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-decoder.jpg)
+<!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-decoder.jpg) -->
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-decoder.jpg" width = "600"/>
 
 解码器采用的是和编码器完全对偶的结构。编码器得到的 embedding 经过一维卷积后进入 $B_{dec}$ 个 DecoderBlock 模块。每个 DecoderBlock 先进入一层一维反卷积进行上采样，再经过三层残差单元将输出 channel 减半，三层残差单元的膨胀卷积率仍然是 1, 3, 9 的顺序。$B_{dec}$ 层 DecoderBlock 之后是一层输出 channel 为 1 的一维卷积，相当于将当前时刻的输出映射到原始的时域波形上。
 
@@ -130,7 +139,8 @@ SoundStream 整体的编解码器结构比较直观，但论文的关键技术�
 
 值得注意的是，论文将原本的一层 VQ 转换为多层残差 VQ 时，每个 VQ 层的 codebook 大小保持一致，相当于比特率的降低是按照倍数平均分配到每个 VQ 层的。按照前文 24 kHz 音频压缩到 6 kbps 的例子：当使用的 VQ 层共$N_q = 8$时，每个 VQ 对应的 codebook 大小可以变为$2^{80/8} = 2^{10} = 1024$，此时就是一个相对可行的 codebook 大小了。
 
-![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-algorithm1.jpg)
+<!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-algorithm1.jpg) -->
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-algorithm1.jpg" width = "500"/>
 
 #### codebook EMA 训练
 
@@ -173,7 +183,9 @@ SoundStream 为了提高编解码之后音频的合成质量，将语音合成�
 - 图示的 6 层 ResidualUnit 中，第一层二维卷积的输出维度是 C, 2C, 4C, 4C, 8C, 8C 的变化规律，而第二层二维卷积的输出维度是 2C, 4C, 4C, 8C, 8C, 16C 的变化规律。6 层 ResidualUnit 之后，时域降采样倍数为 1×2×1×2×1×2=8，频域降采样倍数为 2×2×2×2×2×2=64，二维输出的大小为 (T/8, F/64) = (T/8, 8)
 - 最后使用全连接将其映射为单个数值的 logits，表示该波形是编解码后恢复的还是真实的音频
 
-![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-disc.jpg)
+<!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-disc.jpg) -->
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-disc.jpg" width = "500"/>
+
 
 ### 训练目标
 
@@ -258,19 +270,23 @@ SoundStream @ 3kbps 相当于 EVS @ 9.6kbps 和 Opus@12kbps，SoundStream@6kbps 
 
 ##### 模型参数量大小的影响
 
-![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-param-exp.jpg)
+<!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-param-exp.jpg) -->
+
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-param-exp.jpg" width = "500"/>
 
 从实验结果可以看出，建议使用相对轻量级的编码器和参数量更多的解码器。
 
 ##### VQ 参数配置的影响
 
-![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-vq-exp.jpg)
+<!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-vq-exp.jpg) -->
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-vq-exp.jpg" width = "500"/>
 
 假设共$N_q$个量化器，每个量化器的 codebook 大小为 N，那么每帧 embedding 编码后需要$N_q\log N$比特来存储，比特率和$N_q\log N$正相关。表格中给出了相同比特率下的不同参数配置，可以看出量化器层数不必太多，每层的 codebook 大小更大时，模型的效果会更好；但同时也能看出，80 层深层的 1-bit 量化器，也能够达到较好的效果，验证了 RVQ 深层网络的有效性。
 
 ##### 模型的时延计算
 
-![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-latency-exp.jpg)
+<!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-latency-exp.jpg) -->
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-latency-exp.jpg" width = "500"/>
 
 前文说明过，模型的时延主要取决于编码器的降采样倍数，降采样倍数越大，时延越大。表格中给出了详细的对比结果，能够看出，降采样倍数越大，时延越大，但同时模型需要的量化层数明显降低，编解码器的实时率会随之提高（因为每个 embedding 对应的真实时间更长），因此在实际场景中需要在时延和实时性之间进行 trade-off。
 
@@ -278,7 +294,8 @@ SoundStream @ 3kbps 相当于 EVS @ 9.6kbps 和 Opus@12kbps，SoundStream@6kbps 
 
 该评测将联合降噪压缩与分别的降噪和压缩进行对比。降噪和压缩分开时，压缩采用 SoundStream 模型，降噪采用 SEANet 模型，关于降噪和压缩模型的使用顺序，分别使用先降噪（编码前）后压缩、先压缩后降噪（解码后）两种策略。评测数据集使用的是 24kHz 的 VCTK，没有被用于 SoundStream 和 SEANet 的训练。分别在0，5,10,15 dB 四个配置下评测：
 
-![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-joint-exp.jpg)
+<!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-joint-exp.jpg) -->
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-joint-exp.jpg" width = "500"/>
 
 联合的压缩和降噪略差于其他两种实验配置，其他两种实验表明顺序带来的影响相差不大。SoundStream 的优势在于一个模型两种功能，简约而且省算力，并且和分开的两个模型在最终结果上相差不大。
 
