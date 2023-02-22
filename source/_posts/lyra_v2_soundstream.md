@@ -1,6 +1,6 @@
 ---
 title: 音频编解码 | 论文笔记 | SoundStream
-date: 2022-10-25 11:40:36
+date: 2022-01-14 11:40:36
 tags: [音频编解码, 语音合成]
 categories: [论文笔记]
 copyright_info: true
@@ -9,7 +9,7 @@ mathjax: true
 comment: false
 ---
 
-SoundStream 是谷歌 2021 年提出的一种神经网络音频编解码器，能够在传统编解码器通常使用的比特率下，高效地压缩语音、音乐等各类音频，SoundStream 在音频压缩、音频降噪及语音合成等任务中都有所应用。本文对 SoundStream 的原始论文进行分析和解读。
+SoundStream 是谷歌 2021 年提出的一种神经网络音频编解码器，能够在传统编解码器通常使用的比特率下，高效地压缩语音、音乐等各类音频，SoundStream 在音频压缩、音频降噪及音频生成（比如 Google 2022 年 9 月提出的 AudioLM 和 2023 年 1 月提出的 MusicLM）等任务中都有所应用。本文对 SoundStream 的原始论文进行分析和解读。
 
 <!-- more -->
 
@@ -52,7 +52,7 @@ SoundStream 是谷歌 2021 年提出的一种神经网络音频编解码器，�
 
 ### 波形编码（非参数编码）
 
-波形编码的目标是：解码重建的音频信号在波形上维持原音频信号的波形形状，准确地重建出编码前的采样点。波形编码端通常给定一个可逆的编码方式，将输入的时域波形转换到频域，再将频域的系数进行量化和`熵编码`；解码端则实现逆过程，从量化编码后的频域恢复出原始的时域波形。其中，量化的过程通常是基于感知模型进行比特分配（bit allocation），基于人耳对不同频率成分的感知程度不一样，给不同的频带分配不同的量化位数。
+波形编码的目标是：解码重建的音频信号在波形上维持原音频信号的波形形状，准确地重建出编码前的采样点。波形编码端通常给定一个可逆的编码方式，将输入的时域波形转换到频域，再将频域的系数进行量化和**熵编码**；解码端则实现逆过程，从量化编码后的频域恢复出原始的时域波形。其中，量化的过程通常是基于感知模型进行比特分配（bit allocation），基于人耳对不同频率成分的感知程度不一样，给不同的频带分配不同的量化位数。
 
 从上述过程可以看出，波形编码基本没有对音频的内容（语音/音乐/噪声/混响）信息进行先验假设，而是将音频信号作为一般的波形信号来处理，所以是通用的音频编解码方式。波形编解码器通常需要较高的比特率（16-64 kbps）才能恢复出很高质量的音频，在低比特率下会有较明显的量化损失。
 
@@ -65,7 +65,7 @@ SoundStream 是谷歌 2021 年提出的一种神经网络音频编解码器，�
 参数编码器的优点是比特率低，但解码合成的音频品质较差，自然度低。该类编码器对环境信噪比也比较敏感，在安静的坏境才能给出较高的清晰度，对信道误码也比较敏感。
 
 
-综上，以上两种传统的音频编解码需要信号处理流程和工程设计，提升编码的效果需要利用`**心理声学**`和语音合成领域的知识。目前产业界常用的 Opus / EVS（增强语音服务，Enhance Voice Services）都算是传统的音频编码方式，已经基本能够在低时延和实时通信的前提下，保证在不同的内容（语音/音乐）、不同比特率、不同采样率下的高效性。
+综上，以上两种传统的音频编解码需要信号处理流程和工程设计，提升编码的效果需要利用**心理声学**和语音合成领域的知识。目前产业界常用的 Opus / EVS（增强语音服务，Enhance Voice Services）都算是传统的音频编码方式，已经基本能够在低时延和实时通信的前提下，保证在不同的内容（语音/音乐）、不同比特率、不同采样率下的高效性。
 
 > **心理声学（psycho-acoustics）**是面向人感知的声学，研究声音和它引起的听觉之间的关系，探究“人脑感知和解释声音的方式”。
 
@@ -180,8 +180,8 @@ SoundStream 为了提高编解码之后音频的合成质量，将语音合成�
 - 输入的 24 kHz 原始波形先进行 STFT 短时傅里叶变换，使用的窗长（window length）$W$ = 1024 个采样点，跳步（hop length）$H$ = 256 个采样点。经过 STFT 操作后得到二维的时频域输出（$T\times F$，$T$ 为时域采样点个数，$F$ 表示 STFT 后的 frequecy bin 个数，由选用的窗长 $W$ 决定，$F = W/2 = 512$）
 - 然后输入到一层 kernel size 为 7 × 7、输出 channel 个数为 32 的二维卷积中，之后是若干层 ResidualUnit，结构上是将编解码器中 ResidualUnit 中的一维卷积全部替换为二维卷积
 - 每个 ResiduaUnit 内部包含两层二维卷积，第一层 kernel size 为 3 × 3，第二层在不同 ResidualUnit 内是不同的：二维卷积的 stride 是 (1, 2) 和 (2, 2) 两组参数交替使用，图中$s_t$和$s_f$ 分别表示时域和频域的 stride，代表两个维度的降采样倍数；根据 stride 参数的不同，分别对应于 (3, 4) 和 (4, 4) 的 kernel size，使得 stride 较小时感受野不必过大。
-- 图示的 6 层 ResidualUnit 中，第一层二维卷积的输出维度是 C, 2C, 4C, 4C, 8C, 8C 的变化规律，而第二层二维卷积的输出维度是 2C, 4C, 4C, 8C, 8C, 16C 的变化规律。6 层 ResidualUnit 之后，时域降采样倍数为 1×2×1×2×1×2=8，频域降采样倍数为 2×2×2×2×2×2=64，二维输出的大小为 (T/8, F/64) = (T/8, 8)
-- 最后使用全连接将其映射为单个数值的 logits，表示该波形是编解码后恢复的还是真实的音频
+- 图示的 6 层 ResidualUnit 中，第一层二维卷积的输出维度是 C, 2C, 4C, 4C, 8C, 8C 的变化规律，而第二层二维卷积的输出维度是 2C, 4C, 4C, 8C, 8C, 16C 的变化规律。6 层 ResidualUnit 之后，时域降采样倍数为 1×2×1×2×1×2=8，频域降采样倍数为 2×2×2×2×2×2=64，二维输出的大小为 (T/8, F/64) = (T/8, 8)。
+- 最后使用全连接将其映射为单个数值的 logits，表示该波形是编解码后恢复的还是真实的音频。
 
 <!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-disc.jpg) -->
 <img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-disc.jpg" width = "500"/>
@@ -301,7 +301,18 @@ SoundStream @ 3kbps 相当于 EVS @ 9.6kbps 和 Opus@12kbps，SoundStream@6kbps 
 
 ---
 
-示例音频详见 Google 的官方博客和 demo 页面：
+## 参考文献/链接
+- **Lyra v1**: Kleijn, W. Bastiaan, et al. "Generative Speech Coding with Predictive Variance Regularization." arXiv preprint arXiv:2102.09660 (2021). [[pdf]](https://arxiv.org/pdf/2102.09660.pdf)
+- **AudioLM**: Borsos, Zalán, et al. "Audiolm: a language modeling approach to audio generation." arXiv preprint arXiv:2209.03143 (2022). [[pdf]](https://arxiv.org/pdf/2209.03143.pdf)
+- **MusicLM**: Agostinelli, Andrea, et al. "MusicLM: Generating Music From Text." arXiv preprint arXiv:2301.11325 (2023). [[pdf]](https://arxiv.org/pdf/2301.11325.pdf)
+- **EMA 训练 codebook 1**: Van Den Oord, Aaron, and Oriol Vinyals. "Neural discrete representation learning." Advances in neural information processing systems 30 (2017). [[pdf]](https://arxiv.org/pdf/1711.00937.pdf)
+- **EMA 训练 codebook 2**: Razavi, Ali, Aaron Van den Oord, and Oriol Vinyals. "Generating diverse high-fidelity images with vq-vae-2." Advances in neural information processing systems 32 (2019). [[pdf]](https://arxiv.org/pdf/1906.00446.pdf)
+- **Jukebox**: Dhariwal, Prafulla, et al. "Jukebox: A generative model for music." arXiv preprint arXiv:2005.00341 (2020). [[pdf]](https://arxiv.org/pdf/2005.00341.pdf)
+- **FiLM**: Perez, Ethan, et al. "Film: Visual reasoning with a general conditioning layer." Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 32. No. 1. 2018. [[pdf]](https://arxiv.org/pdf/1709.07871.pdf)
+- **ViSQOL 指标**: Chinen, Michael, et al. "ViSQOL v3: An open source production ready objective speech and audio metric." 2020 twelfth international conference on quality of multimedia experience (QoMEX). IEEE, 2020. [[pdf]](https://arxiv.org/pdf/2004.09584.pdf)
+- **官方博客**: [https://opensource.googleblog.com/2022/09/lyra-v2-a-better-faster-and-more-versatile-speech-codec.html](https://opensource.googleblog.com/2022/09/lyra-v2-a-better-faster-and-more-versatile-speech-codec.html)
+- **示例音频**: [https://google-research.github.io/seanet/soundstream/examples](https://google-research.github.io/seanet/soundstream/examples/)
+- **官方开源**: [https://github.com/google/lyra](https://github.com/google/lyra)
+- **非官方实现（PyTorch）Lucidrains**: [https://github.com/lucidrains/audiolm-pytorch/blob/main/audiolm_pytorch/soundstream.py](https://github.com/lucidrains/audiolm-pytorch/blob/main/audiolm_pytorch/soundstream.py)
+- **非官方实现（Pytorch）wesbz**: [https://github.com/wesbz/SoundStream](https://github.com/wesbz/SoundStream)
 
-- [https://opensource.googleblog.com/2022/09/lyra-v2-a-better-faster-and-more-versatile-speech-codec.html](https://opensource.googleblog.com/2022/09/lyra-v2-a-better-faster-and-more-versatile-speech-codec.html)
-- [https://google-research.github.io/seanet/soundstream/examples](https://google-research.github.io/seanet/soundstream/examples/)

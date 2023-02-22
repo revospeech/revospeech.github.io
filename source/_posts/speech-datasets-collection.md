@@ -1,6 +1,6 @@
 ---
 title: 开源语音数据库汇总
-date: 2023-01-02
+date: 2023-01-07
 tags: [语音识别, 语音合成]
 categories: 数据集
 copyright_info: true
