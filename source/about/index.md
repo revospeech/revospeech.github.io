@@ -3,7 +3,8 @@ title: 关于
 date: 2023-01-01
 ---
 
-联系方式：revospeech@163.com
+**联系方式**：revospeech@163.com
+**GitHub**：https://github.com/revospeech
 
 #### 工作经历
 - **公司 Y** · 语音合成算法工程师 —— 2022.03 至今

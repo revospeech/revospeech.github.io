@@ -30,6 +30,13 @@ comment: false
 $ hexo new "My New Post"
 ```
 
+$$
+\begin{align}
+    V(G,D) & = \int_{x} p_{data}(x) \log (D(x)) dx + \int_{z}p_{z}(z) \log (1 - D(g(z))) dz \\\\
+    & = \int_{x} p_{data}(x) \log (D(x)) + p_g(x) \log (1-D(x)) dx 
+\end{align}
+$$
+
 <!-- more -->
 
 More info: [Writing](https://hexo.io/docs/writing.html)

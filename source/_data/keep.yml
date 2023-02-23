@@ -62,7 +62,7 @@ style:
 
     # First screen description
     # You can use the "||" to begin a newline, maximum is two lines.
-    description: Revive and Evolve || To The Future
+    description: Revive and Evolve || Towards the Future
 
     # If you want to customize the first screen font color, you can fill in here (e.g. "#0066CC")
     # Otherwise use the theme default font color

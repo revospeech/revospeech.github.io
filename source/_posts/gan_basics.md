@@ -1,5 +1,5 @@
 ---
-title: 生成模型基础 | 论文笔记 | GAN 基础知识
+title: 生成模型基础 | 论文笔记 | GAN 的基础（一）
 date: 2023-01-21 11:40:36
 tags: [生成模型, 语音合成, 声码器]
 categories: [论文笔记]
@@ -20,8 +20,6 @@ comment: false
 | ICCV | 2017 | Least Squares Generative Adversarial Networks | [[pdf]](https://openaccess.thecvf.com/content_ICCV_2017/papers/Mao_Least_Squares_Generative_ICCV_2017_paper.pdf) |
 
 
-## GAN 的提出
-
 GAN（生成对抗网络）包含生成器（Generator，生成式模型）和判别器（Discriminator，判别式模型）两大模块，GAN 的核心思想正是在于**生成器和判别器的对抗（Adversarial）**。在实际应用中，通常只用到生成器部分，用于生成图像、语音或音频等，但实际上训练出效果好的生成器离不开判别器，判别器的作用是区分样本究竟是从生成模型生成的假样本还是真实样本。GAN 实际上提出了一套新的框架，和具体的训练算法、模型结构和优化算法都无关。
 
 对于生成器和判别器间存在的对抗关系，论文给出一个形象的比喻：生成器相当于造假币的人，而判别器则相当于警察；所谓的对抗关系是指，造假币的人会为了让警察无法区分货币的真假而提升造假币的能力，同时警察也会提高自己区分真假币的能力（判别器的同步优化），优化时生成和判别两个模型的能力都会提升。对于最终训练完成的生成器，理想的状态是判别器无法区分样本究竟是真实的还是生成的，从而达到“以假乱真”的效果。
@@ -34,7 +32,7 @@ GAN（生成对抗网络）包含生成器（Generator，生成式模型）和�
 
 在 GAN 工作的同时，有其他研究者延续了生成随机网络的思想，提出了更通用的随机反向传播方法，能够对方差有限的高斯分布进行反向传播，更新均值和协方差的参数，用于变分自编码器（VAE，Variational AutoEncoder）的训练。VAE 是另一种生成式模型，之后在另外的文章中会详细解读。从思想上来看，VAE 和 GAN 都是使用两个网络协同训练，但是 VAE 中的第二个网络作为判别模型时进行了近似推断，此外 GAN 不能够建模离散的数据，VAE 不能使用离散的隐变量。
 
-之前有类似于 GAN 的**采用判别式模型协助训练生成模型**的工作，有一个曾经和 GAN 产生过学术争议的工作是（Predictability Minimization，PM），第一个网络的每个隐层单元都朝着和第二个网络当前输出结果不同的方向去训练。在这一点上，PM 的作者 [Jürgen Schmidhuber](https://people.idsia.ch/~juergen/) 曾经和 GAN 的作者 [Ian Goodfellow](https://www.iangoodfellow.com) 产生过争议（[YouTube 链接](https://www.youtube.com/watch?v=HGYYEUSm-0Q)），但是 Ian Goodfellow 阐明了 GAN 和 PM 的三点不同之处：
+之前有类似于 GAN 的**采用判别式模型协助训练生成模型**的工作。PM（Predictability Minimization）的作者 [Jürgen Schmidhuber](https://people.idsia.ch/~juergen/) 曾经和 GAN 的作者 [Ian Goodfellow](https://www.iangoodfellow.com) 产生过争议（[YouTube 链接](https://www.youtube.com/watch?v=HGYYEUSm-0Q)），PM 的思路是第一个网络的每个隐层单元都朝着和第二个网络当前输出结果不同的方向去训练，思想上是有几分相似的地方。Ian Goodfellow 阐明了 GAN 和 PM 的三点不同之处：
 1. GAN 的生成器和判别器之间的对抗训练，是模型训练的唯一目标，该目标已经足够训练网络；但是 PM 严格来说相当于辅助隐层单元训练的正则项，不是训练的主要目标；
 2. 在 PM 中，两个网络的输出之间进行对比，其中一个网络的目标使得两者的输出更加接近，另一个网络的目标是使得两者的输出不同；但是 GAN 没有对比两个网络的输出，而是将第一个网络得到的高维特征信息作为第二个网络的输入，目标是让第二个网络对输入丧失真假的判别能力；
 3. PM 的训练目标是单纯的优化问题，最小化定义的目标函数；但是 GAN 包含了两层目标的同步优化，即博弈中的 Minimax，在两层优化目标中间找到一个相对的平衡点。
@@ -75,7 +73,7 @@ GAN 的判别器可以定义成 $D(x;θ_d)$ ，其中 $x$ 表示判别器的输�
 
 ### GAN 的具体流程
 
-<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/gan-pic-sample.jpg" width = "700"/>
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230223/gan-train-proc.jpg" width = "650"/>
 
 对于每次训练迭代：
 1) 先执行 k (k 是超参数) 步，固定生成器，更新判别器：
@@ -97,28 +95,58 @@ GAN 的生成器的目标，是让生成的样本分布和真实样本的分布�
 
 对于优化目标 $ \min_D \max_G V(D, G) = E_{x \in p_{data}(x)} \log(D(x)) + E_{x \in p_{z}(z)} \log(1-D(G(z))) $，只关注内层的 max 目标时，目标可以表示为：
 
-$$ V(G,D) = \int_{x} p_{data}(x) \log (D(x)) dx + \int_{z}p_{z}(z) \log (1 - D(g(z))) dz \newline = \int_{x} p_{data}(x) \log (D(x)) + p_g(x) \log (1-D(x)) dx $$
+$$
+\begin{align}
+    V(G,D) & = \int_{x} p_{data}(x) \log (D(x)) dx + \int_{z}p_{z}(z) \log (1 - D(g(z))) dz \\\\
+    & = \int_{x} p_{data}(x) \log (D(x)) + p_g(x) \log (1-D(x)) dx 
+\end{align}
+$$
 
 其中，第二个等号只是进行了 $ t = g(z) $ 的替换，对 $t$ 积分，但是 $t$ 和 $x$ 只是符号表示，所以可以合并积分项。目标函数求导后值为 0 时，求解得到 D 的最优解是：
 
 $$ D_G^{\star}(x) = \frac{p_{data}(x)}{p_{data}(x) + p_g(x)} $$
 
-持续更新中...
-<!-- 2) 将 D 的最优解代回目标函数，得到 -->
-<!-- ![image.png](https://cdn.nlark.com/yuque/0/2022/png/29121866/1666334533145-02db11c6-fc62-4fa7-901f-71a5a6d4da9f.png#averageHue=%23efefef&clientId=u1a76a01c-5575-4&from=paste&height=147&id=u6786300f&name=image.png&originHeight=194&originWidth=806&originalType=binary&ratio=1&rotation=0&showTitle=false&size=39012&status=done&style=none&taskId=u89b20a3f-3119-407b-962d-ccc70aeb576&title=&width=609) -->
-<!-- **KL 散度的定义：** -->
-<!-- ![image.png](https://cdn.nlark.com/yuque/0/2022/png/29121866/1666334864909-1a92ad7b-ee91-4f81-9c14-57df5bf43d78.png#averageHue=%23000000&clientId=u1a76a01c-5575-4&from=paste&height=58&id=ub14ae9d0&name=image.png&originHeight=59&originWidth=355&originalType=binary&ratio=1&rotation=0&showTitle=false&size=9378&status=done&style=none&taskId=u4b417150-e2e4-41a2-949c-d61aa2bc346&title=&width=351.5) -->
-<!-- 当 pg = p_data 时，C(G) = -log4，现在证明 C(G) 的最小值就是：− log(4)，当且仅当  pg = p_data 时有最小值。根据 C(G) 和 KL 散度的定义，可得： -->
-<!-- ![image.png](https://cdn.nlark.com/yuque/0/2022/png/29121866/1666335020312-abc1678f-a185-4efc-8692-5e44d7b5542c.png#averageHue=%23efefef&clientId=u1a76a01c-5575-4&from=paste&height=54&id=u9da3e12f&name=image.png&originHeight=108&originWidth=1130&originalType=binary&ratio=1&rotation=0&showTitle=false&size=22165&status=done&style=none&taskId=u4cbad66c-efcf-4686-81d6-12ce135a65d&title=&width=565) -->
-<!-- 使用 JS 散度，可以转换为 -->
-<!-- ![image.png](https://cdn.nlark.com/yuque/0/2022/png/29121866/1666335304781-0a00a59c-0139-407a-8193-bfe4dd3b372d.png#averageHue=%23e9e9e9&clientId=u1a76a01c-5575-4&from=paste&height=30&id=ua1319c5a&name=image.png&originHeight=60&originWidth=653&originalType=binary&ratio=1&rotation=0&showTitle=false&size=13597&status=done&style=none&taskId=ubd241407-01bc-4a4c-a803-fe711c2df44&title=&width=326.5) -->
-<!-- 不论是 KL 散度还是 JS 散度，数值都是非负的，所以 C(G) 的最小值就是 -log4 -->
-<!-- ### 6. 论文的拓展延伸 -->
-<!-- 1) 条件生成模型，可以在 GAN 的 G 和 D 上增加条件输入 -->
-<!-- 2) 半监督学习：disciminator 的特征可以用来提升分类器的效果，只需要比较少的有标签数据 -->
+2. 将 D 的最优解代回，得到固定 D 优化 G 时的目标函数：
+$$ 
+\begin{align}
+    C(G) & = max_D V(G,D) \\\\
+    & = E_{x \in p_{data}}[\log D_G^{\star}(x)] + E_{z \in p_z}[\log (1 - D_G^{\star}(G(z)))] \\\\
+    & = E_{x \in p_{data}}[\log D_G^{\star}(x)] + E_{x \in p_g}[\log (1 - D_G^{\star}(x)] \\\\
+    & = E_{x \in p_{data}} [\log\frac{p_{data}(x)}{p_{data}(x) + p_g(x)}] + E_{x \in p_g} [\log\frac{p_{g}(x)}{p_{data}(x) + p_g(x)}]
+\end{align}
+$$
 
-<!-- 参考资料
+注意，上述公式中 $ p_{data} $ 和 $ p_{g} $ 都是随机变量的概率分布：$ p_{data} $ 表示真实样本的分布，$ p_{g} $ 表示生成样本的分布。
+
+> **数学基础知识复习**
+> 1. 若连续随机变量 $x \in p(x)$, 则 $x$ 的期望计算方式如下：
+> $$ E(x) = \int_{-\infty}^{+\infty} xp(x) dx$$
+> 2. **KL (Kullback-Leibler) 散度** 常被用于衡量两个分布（如 $p_x$ 和 $q_x$）间的相似程度，数学表达式为：
+> $$ D_{KL}(p || q) = \int_{-\infty}^{+\infty} p(x) \log \frac{p(x)}{q(x)} dx$$
+> 计算 KL 散度时对两个分布的顺序是有要求的，属于非对称关系，即 $ D_{KL}(p || q) \neq D_{KL}(q || p) $。
+> 3. **JS (Jensen-Shannon) 散度** 也可用于衡量两个分布间的相似程度，解决了 KL 散度的非对称的问题，数学表达式为：
+> $$ D_{JS}(p || q) = \frac{1}{2} D_{KL}(p || \frac{p+q}{2}) + \frac{1}{2} D_{KL}(q || \frac{p+q}{2}) $$
+> JS 散度的计算具有对称性，即 $D_{JS}(p || q) = D_{JS}(q || p)$。
+> 4. 不论是 KL 散度还是 JS 散度，数值都具有非负性。KL 散度的非负性也被称为[吉布斯不等式](https://zh.wikipedia.org/zh-hans/%E5%90%89%E5%B8%83%E6%96%AF%E4%B8%8D%E7%AD%89%E5%BC%8F)，KL 散度值为 0 当且仅当 $p = q$ 时得到。JS 散度非负性很容易从 KL 散度的非负性推导出。
+
+回过头来看 $C(G)$ 的表达式可以变换为：
+$$
+\begin{align}
+C(G) & = E_{x \in p_{data}} [\log\frac{p_{data}(x)}{p_{data}(x) + p_g(x)}] + E_{x \in p_g} [\log\frac{p_{g}(x)}{p_{data}(x) + p_g(x)}] \\\\
+& = \int_{-\infty}^{+\infty} p_{data}(x) \log \frac{p_{data}(x)}{p_{data}(x) + p_{g}(x)} dx + \int_{-\infty}^{+\infty} p_{g}(x) \log \frac{p_{g}(x)}{p_{data}(x) + p_{g}(x)} dx \\\\
+& = [\log\frac{1}{2} + \int_{-\infty}^{+\infty} p_{data}(x) \log \frac{p_{data}(x)}{\frac{p_{data}(x) + p_{g}(x)}{2}} dx] + [\log\frac{1}{2} + \int_{-\infty}^{+\infty} p_{g}(x) \log \frac{p_{g}(x)}{\frac{p_{data}(x) + p_{g}(x)}{2}} dx] \\\\
+& = -log4 + D_{KL}(p_{data}||\frac{p_{data} + p_g}{2}) + D_{KL}(p_{g}||\frac{p_{data} + p_g}{2}) \\\\
+& = -log4 + 2 \times D_{JS}(p_{data} || p_g)
+\end{align}
+$$
+
+因此，$C(G) >= -log4$ 当且仅当 $p_g = p_{data}$ 时得到，这也证明出了 GAN 优化目标的全局最优结果是生成器的分布和训练数据的分布完全相同。
+
+GAN 原论文中的实验主要是图像生成任务，此处不再过多展开，具体可以参考本文结尾的李沐老师的讲解视频。GAN 被提出后，在代码实现和实际训练过程中也暴露出一些问题，后续将具体介绍一些 GAN 中常用的方法（trick）作为补充。
+
+<br>
+
 <div style="position: relative; width: 100%; height: 0; padding-bottom: 75%;">
     <iframe src="//player.bilibili.com/player.html?aid=634089974&bvid=BV1rb4y187vD&cid=439574005&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="position: absolute; width: 100%; height: 100%; left: 0; top: 0;"></iframe>
-</div> -->
+</div>
 
