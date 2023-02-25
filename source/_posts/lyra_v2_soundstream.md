@@ -114,7 +114,7 @@ SoundStream 模型是基于波形重建和对抗训练两个损失函数进行�
 
 为了保证模型的实时性和低时延，模型中用到的所有一维卷积全部采用因果卷积，卷积计算只会用到当前及之前的信息，padding 的操作也只应用于过去的序列。另外，所有的卷积层只使用 ELU 激活函数，不加入任何形式的 normalization 层。
 
-### 解码器
+### 解码器结构
 
 <!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-decoder.jpg) -->
 <img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-decoder.jpg" width = "600"/>
@@ -252,13 +252,16 @@ Opus 是传统的音频编解码方法，支持 4kHz ~ 24 kHz 的采样率和 6 
 
 #### 不同比特率下的结果
 
-![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-scalable.jpg)
+<!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-scalable.jpg) -->
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-scalable.jpg" width = "750"/>
+
 
 其中 scalable 的 SoundStream 代表一个支持多比特率的模型，不带 scalable 的模型表示给当前比特率专门训练的模型，可以看出模型是否 scalable 差别不大，尤其是高比特率下几乎无差别。相同比特率下，SoundStream 碾压其他三个基线模型。
 
 #### 不同类型音频的结果
 
-![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-content-exp.jpg)
+<!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-content-exp.jpg) -->
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-content-exp.jpg" width = "750"/>
 
 SoundStream @ 3kbps 相当于 EVS @ 9.6kbps 和 Opus@12kbps，SoundStream@6kbps 相当于 Opus @ 16kbps 和 EVS @ 13.2kbps，SoundStream @ 12kbps 超过了 Opus @ 20kbps 和 EVS @ 16.4kbps。普遍性地，编解码后恢复的音频，MUSHRA 分数上：干净语音 > 真实场景音频 > 带噪语音 > 音乐。
 
