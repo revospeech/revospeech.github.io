@@ -7,6 +7,9 @@ date: 2023-01-01
 **GitHub**：https://github.com/revospeech
 
 #### 工作经历
+
+<img align="right" src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230225/mp_qrcode_art_title.jpg" width = "280"/>
+
 - **公司 Y** · 语音合成算法工程师 —— 2022.03 至今
 	- 中文/英文多说话人语音合成
 	- 零样本/少样本个性化语音合成/语音编辑

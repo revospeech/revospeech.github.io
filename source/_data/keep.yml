@@ -109,7 +109,7 @@ social_contact:
     # e.g. [ weixin: img | https://x.com/images/wechat.png ] or [ weixin: img | ./images/wechat.png ]
     email: revospeech@163.com # Email
     github: https://github.com/revospeech # GitHub
-    # weixin: img | 公众号图片外链        # WeChat
+    weixin: img | https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230225/mp_qrcode.jpg        # WeChat
     qq:              # QQ
     weibo:           # WeiBo
     zhihu:           # ZhiHu
