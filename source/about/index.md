@@ -6,6 +6,9 @@ date: 2023-01-01
 **联系方式**：revospeech@163.com
 **GitHub**：https://github.com/revospeech
 
+<!-- <img src="https://ghchart.rshah.org/revospeech" width="800" style="border:none"/>
+ -->
+ 
 #### 工作经历
 
 <img align="right" src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230225/mp_qrcode_art_title.jpg" width = "280"/>

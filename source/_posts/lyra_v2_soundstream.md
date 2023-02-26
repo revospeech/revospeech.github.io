@@ -1,7 +1,7 @@
 ---
 title: 音频编解码 | 论文笔记 | SoundStream
 date: 2023-01-14 11:40:36
-tags: [音频编解码, 语音合成]
+tags: [音频编解码, 音频生成]
 categories: [论文笔记]
 copyright_info: true
 toc: true
