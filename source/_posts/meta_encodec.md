@@ -199,7 +199,7 @@ $$\tilde{g_{i}} = R \frac{\lambda_{i}}{\sum_j \lambda_{j}} \cdot \frac{g_i}{\<\v
 
 <img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230227/table-4.jpg" width = "700"/>
 
-##### 单核 CPU 下的延时与实时性
+##### 单核 CPU 下的时延与实时性
 与 SoundStream 相比，模型的实时率有所变差，但是 24 kHz 下仍然能够满足实际应用的实时性需求，但是 48 kHz 下实时率小于 1，只能用于音频的离线压缩场景。
 
 <img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230227/table-5.jpg" width = "700"/>
