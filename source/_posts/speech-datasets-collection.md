@@ -14,6 +14,8 @@ comment: false
 
 This is a curated list of open speech datasets for speech-related research (mainly for Automatic Speech Recognition). Over **110** speech datasets are collected, and more than **70** datasets can be downloaded directly without further registration or application.
 
+<!-- more -->
+
 > GitHub Link: [https://github.com/RevoSpeechTech/speech-datasets-collection](https://github.com/RevoSpeechTech/speech-datasets-collection)
 > Contributions for more speech datasets are welcome!
 > You can issue [here](https://github.com/RevoSpeechTech/speech-datasets-collection/issues) with new speech datasets, and the list of datasets will be updated **Seasonly**.
