@@ -295,10 +295,16 @@ $$\tilde{g_{i}} = R \frac{\lambda_{i}}{\sum_j \lambda_{j}} \cdot \frac{g_i}{\<\v
 
 <img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230227/table-5.jpg" width = "700"/>
 
-<br>
 
-##### TODO
+### 参考文献/链接
 
-- [ ] 区间编码 + 源码示例
+### 参考讲解视频
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/mV7bhf6b2Hs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+### TODO
+
+- [ ] 区间编码 + 源码讲解
 - [ ] Encodec 基于 Gumbel-Softmax 的量化器
-- [ ] 补充完善相关的参考文献
+- [ ] 参考文献补充
+- [ ] 实验细节补充
