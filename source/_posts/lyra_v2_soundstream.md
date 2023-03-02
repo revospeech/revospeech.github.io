@@ -27,7 +27,7 @@ SoundStream 是谷歌 2021 年提出的一种神经网络音频编解码器，�
 3. 训练时在量化层使用了结构化 dropout，使得单一模型能够在 3kbps 到 18kbps 不同的比特率下有效使用，相比于固定比特率的模型，音频质量的损失几乎可以忽略不计；
 4. 模型支持将音频压缩编码与音频降噪进行联合建模，达到与级联模型相近的效果。
 
-<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/model-simple.6st1c7zqzjc0.jpg" width = "650"/>
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/model-simple.6st1c7zqzjc0.jpg" width = "700"/>
 <!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/model-simple.6st1c7zqzjc0.jpg) -->
 
 在实际应用场景中，SoundStream 可修改为低时延的设计，支持流式的编解码推理，在智能手机 CPU 上可达到实时的效果。在主观评测中，对于 24kHz 采样率下的音频，3 kbps 低比特率下的 SoundStream 比 12 kbps 的 Opus 和 9.6 kbps 的 EVS（增强语音服务，Enhance Voice Services）效果都更好。另外，SoundStream 的 Encoder 端或者 Decoder 端允许对压缩编码和语音增强进行联合建模，单一模型的实现，不会额外增加时延。
@@ -132,6 +132,8 @@ SoundStream 整体的编解码器结构比较直观，但论文的关键技术�
 #### 普通 VQ 的局限性
 
 计算下 VQ 所需的 codebook 大小：如果目标比特率是 6 kbps，对于 24 kHz 的音频，按照前文图中的 320 倍降采样，每秒对应于 75 个 embedding，每个 embedding 对应的比特数为 6000 / 75 = 80 bit，那么对应的 codebook 大小是 $2^{80}$，这个量级肯定是行不通的，因此普通版本的 VQ 因为 codebook 过大而不适用。
+
+> 关于 VQ 中一些更深入的概念，包括 Straight-Through Estimator，commitment loss 等，详见：[Encodec 的论文讲解](https://revospeech.github.io/2023/01/15/meta_encodec/#RVQ-%E6%AE%8B%E5%B7%AE%E5%90%91%E9%87%8F%E9%87%8F%E5%8C%96)。
 
 #### 残差 VQ / 多阶段 VQ
 

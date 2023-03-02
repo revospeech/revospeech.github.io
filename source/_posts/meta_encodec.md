@@ -41,13 +41,67 @@ Encodec 支持流式和非流式两种场景，流式适合于低时延的应用
 
 $$z_q(x) = e_k, k = arg\min_j \vert\vert z_e(x) - e_j \vert\vert_2, j = 1, 2, ..., N$$
 
-上式中 $N$ 代表 codebook 码本的大小，即包含向量的总数。该公式中，从量化前的 Encoder 输出 $z_e(x)$，到量化后的码本中的向量 $z_q(x)$ ，是一个求最小值的操作，没有定义反向传播时梯度的计算方法，Encodec 采用了和 VQ-VAE 一样的操作，直接将 $z_q(x)$ 的梯度拷贝给 $z_e(x)$，属于一种 **Straight-Through Estimator** 的梯度更新策略。
+上式中 $N$ 代表 codebook 码本的大小，即包含向量的总数。该公式中，从量化前的 Encoder 输出 $z_e(x)$，到量化后的码本中的向量 $z_q(x)$ ，是一个求最值（欧氏距离最小）的操作，没有定义反向传播时梯度的计算方法，Encodec 采用了和 VQ-VAE 一样的操作，直接将 $z_q(x)$ 的梯度拷贝给 $z_e(x)$，属于一种 **Straight-Through Estimator** 的梯度更新策略。
 
 > **Straight-Through Estimator** 在 Yoshua Bengio 的[论文](https://arxiv.org/pdf/1308.3432.pdf) 中有详细的介绍，简单理解就是将神经网络反向传播时中某一处的梯度直接作为另外一处的梯度值，相当于这两处之间的网络近似为恒等函数（Identity Function）。VQ 训练 codebook 中的向量是 Straight-Through Estimator 方法的典型应用之一，Encodec 也采用了该方法。
 
+<br>
 <img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230227/vq-vae.jpg" width = "750"/>
 
-上图是 VQ-VAE 的图例，可以作为 Encoder + VQ + Decoder 框架的典型结构。Encoder 的输出 $z_e(x)$ 经过量化器所得到的 $z_q(x)$ 作为 Decoder 的输入会影响重建损失函数的计算，因此损失函数的变化也会通过梯度反向传播影响到 Encoder 的参数更新。所以，整个量化和重建（Reconstruction）的过程不只是为了学习到更好的量化器 VQ 部分，也会使得 Encoder 学到如何改变输出从而降低重建损失函数。
+上图是 VQ-VAE 的图例，可以作为 Encoder + VQ + Decoder 框架的典型结构，本文中 RVQ 里的每个 quantizer 都是按照 VQ-VAE 中的 VQ 方法来实现的。下面使用示例代码进行讲解。代码来源：https://github.com/AntixK/PyTorch-VAE/blob/master/models/vq_vae.py 。
+
+```python
+def forward(self, latents: Tensor) -> Tensor:
+    # 1. 输入是 encoder 输出的 latents
+
+    latents = latents.permute(0, 2, 3, 1).contiguous()  # [B x D x H x W] -> [B x H x W x D]
+    latents_shape = latents.shape
+    flat_latents = latents.view(-1, self.D)  # [BHW x D]
+
+    # 2. 计算各 latent 向量和 codebook 各 embedding 之间的欧氏距离
+    # Compute L2 distance between latents and embedding weights
+    dist = torch.sum(flat_latents ** 2, dim=1, keepdim=True) + \
+           torch.sum(self.embedding.weight ** 2, dim=1) - \
+           2 * torch.matmul(flat_latents, self.embedding.weight.t())  # [BHW x K]
+
+    # 3. 根据欧式距离最小的原则选择相应的 codebook index
+    # 注意此处使用了 torch.argmin 函数，这个函数操作是不可导的，本代码采用的是 straight-through estimator
+    # Get the encoding that has the min distance
+    encoding_inds = torch.argmin(dist, dim=1).unsqueeze(1)  # [BHW, 1]
+
+    # 4. 根据获取的 index 得到量化后的 embedding
+    # Convert to one-hot encodings
+    device = latents.device
+    encoding_one_hot = torch.zeros(encoding_inds.size(0), self.K, device=device)
+    encoding_one_hot.scatter_(1, encoding_inds, 1)  # [BHW x K]
+
+    # Quantize the latents
+    quantized_latents = torch.matmul(encoding_one_hot, self.embedding.weight)  # [BHW, D]
+    quantized_latents = quantized_latents.view(latents_shape)  # [B x H x W x D]
+
+    # 5. 计算 VQ 相关的损失函数
+    # Compute the VQ Losses
+    # # 对应于「损失函数分析」中的第三项损失函数
+    commitment_loss = F.mse_loss(quantized_latents.detach(), latents)
+    # # 对应于「损失函数分析」中的第二项损失函数
+    embedding_loss = F.mse_loss(quantized_latents, latents.detach())
+
+    vq_loss = commitment_loss * self.beta + embedding_loss
+
+    # 6. 关键的一步：straight-through estimator
+    # Add the residue back to the latents
+    quantized_latents = latents + (quantized_latents - latents).detach()
+
+    return quantized_latents.permute(0, 3, 1, 2).contiguous(), vq_loss  # [B x D x H x W]
+```
+
+上述代码给出了 VQ 向量量化的 Pytorch 实现。其中，体现了 Straight-Through Estimator 思想的关键代码是：
+```python
+quantized_latents = latents + (quantized_latents - latents).detach()
+```
+这行代码表示：正向传播时，量化后的结果 quantized_latents 保持不变；但在反向传播时，detach()的部分梯度为 0，因此量化后的 quantized_latents 和输入的量化前 latents 的梯度相同，体现了 Straight-Through Estimator 的思想，从而解决了 VQ 在计算欧氏距离最小的 codebook 编号时 argmin 函数不可导的问题。事实上，VQ 还有其他方式规避不可导的问题，比如**基于 Gumbel-Softmax 的量化**，本文最后会补充介绍。
+
+---
 
 ##### VQ 的损失函数分析
 
@@ -55,7 +109,7 @@ $$z_q(x) = e_k, k = arg\min_j \vert\vert z_e(x) - e_j \vert\vert_2, j = 1, 2, ..
 
 $$ L_{total} = L_{rec} + \vert\vert sg[z_e(x)] - e \vert\vert_2^2 + \vert\vert z_e(x) - sg[e] \vert\vert_2^2$$
 
-1. **重建损失函数** $L_{rec}$：用于 Encoder 的输入（编码前）和 Decoder 的输出（解码后）之间的差异。需要说明的是，$L_{rec}$ 只会影响到 Encoder 和 Decoder 的参数更新，由于前文提到的 Straight-Through Estimator 直接将 $z_q(x)$ 的梯度拷贝给 $z_e(x)$，因此 $L_{rec}$ 不会影响 VQ 中 codebook 的各向量。
+1. **重建损失函数** $L_{rec}$：用于 Encoder 的输入（编码前）和 Decoder 的输出（解码后）之间的差异。$L_{rec}$ 只会影响到 Encoder 和 Decoder 的参数更新，由于前文提到的 Straight-Through Estimator 直接将 $z_q(x)$ 的梯度拷贝给 $z_e(x)$，因此 $L_{rec}$ 不会影响 VQ 中 codebook 的各向量。
 
 2. **VQ 的核心损失函数**：第二项 $\vert\vert sg[z_e(x)] - e \vert\vert_2^2$ 用于缩小 codebook 中的 embedding 向量和 Encoder 的输出之间的距离。该项损失函数只用来更新 codebook 中的向量，为了消除对 Encoder 的参数影响，增加了 $sg[z_e(x)]$（stop-gradient）的限制。
 
@@ -68,6 +122,8 @@ $$l_w = \sum_{c=1}^{C} \vert\vert z_c - q_c(z_c) \vert\vert_2^{2}$$
 > 总之，commitment loss 是为了控制编码器输出的向量，将其映射到最近的码本向量。这样可以保证输出空间的大小不会无限增大，避免过拟合和其他训练问题，从而提高模型的泛化能力和稳定性。
 
 损失函数三部分各自只负责 VQ 中一部分参数的更新：第一项用来优化 Encoder 和 Decoder 不用来优化 codebook，第二项只用来优化 codebook 不涉及 Encoder 和 Decoder，第三项只用来优化 Encoder 不涉及 codebook 和 Decoder。反向总结，Encoder 由第一项和第三项损失函数共同优化，codebook 由第二项损失函数来优化，Decoder 只由第一项损失函数优化。
+
+> Encoder 的输出 $z_e(x)$ 经过量化器所得到的 $z_q(x)$ 作为 Decoder 的输入直接作用于重建损失函数的计算，损失函数的变化也会通过梯度反向传播影响到 **Encoder 的参数更新**。因此，整个量化和重建（Reconstruction）的过程不只是为了学习到更好的量化器 VQ 部分，也会使得 Encoder 学到如何改变输出从而降低重建损失函数。
 
 
 #### 语言建模与熵编码
@@ -87,40 +143,46 @@ Encoder 的降采样倍数固定时，音频压缩的比特率只与 RVQ 包含�
 
 熵编码是一种根据数据的统计特征（比如频率分布）将数据编码为变长编码的技术，核心思想是将出现频率更高的符号用更短的编码来表示，常见的熵编码方法包括霍夫曼编码和算术编码。相比于霍夫曼编码，算术编码能够更有效地压缩数据（[参考链接](https://www.jianshu.com/p/959938932f73)），但同时也需要更高的计算成本，Encodec 使用的是算术编码器，对 Transformer 语言模型预测出的概率分布进行压缩。
 
-> [**霍夫曼编码与熵编码**](https://www.jianshu.com/p/959938932f73)
-> 以一段英文字符串为例，"AABABCABAB" 共 10 个字符，A 出现了 5 次，B 出现了 4 次，C 出现了 1 次。ABC 3 种符号，如果用定长编码进行编码，每种符号至少需要 $\lceil{log_2 3}\rceil = 2$ 个 bit 来表示，那么字符串编码后的长度为 $ 10 * 2 = 20 ~ bit$。但是这种编码方式肯定是存在冗余的，因为 2 bit 实际上最多能够用来表征 4 种符号。
-> 
-> 如果采用霍夫曼编码，对于出现频次更少高的 A，可以使用更短的编码，如下图所示，根据频率的高低（作为权重）构建霍夫曼树：
-> (1) B 和 C 的权重（频率）最小，对应的两个结点形成一个新的二叉树，根结点的权重为 B 和 C 的权重之和 0.5；
-> (2) A 的权重也是 0.5，和 B/C 的根结点再形成一个新的二叉树；
-> 霍夫曼编码时，左子树统一编码为 0，右子树统一编码为 1；因此，A 的编码为 0，B 的编码为 10，C 的编码为 11。使用霍夫曼编码后，整个字符串的编码长度为 $5\times 1 + 4 \times 2 + 1 \times 2 = 15~bit$。
-> 
-> 霍夫曼编码相比于定长编码，将所需 bit 数从 20 降低至 15，但是还没有逼近香农定理的熵极限值。因为霍夫曼仍然是采用整数个 bit 对符号进行编码，比如 A 和 B 两个符号，出现概率分别为 0.4 和 0.1，但是都采用了相同 bit 的编码。根据信息学理论，字符串 "AABABCABAB" 的信息熵为：
-> $$
-> \begin{align}
-> H(x) & = -\sum_x P(x)\log_2 P(x) \\\\
->      & = - (0.5 \times \log_2 0.5 + 0.4 \times \log_2 0.4 + 0.1 \times \log_2 0.1) \\\\
->      & = 1.361
-> \end{align}
-> $$
->
-> 下面采用算术编码对 "AABABCABAB" 进行编码。算术编码会先对 [0, 1] 区间根据概率进行划分：
-> (1) 第一次概率划分：A: [0, 0.5), B:[0.5, 0.9), C:[0.9, 1]
-> 第 1 个字符为 A，那么首先选中 A 的区间 [0, 0.5) 作为新目标区间，按照概率进行划分：
-> (2) 第二次概率划分：A:[0, 0.25), B: [0.25, 0.45), C:[0.45, 0.5)
-> 下一个出现的字符仍然是 A，继续按照概率对 [0, 0.25) 区间进行划分：
-> (3) 第三次概率划分：A:[0, 0.125), B:[0.125, 0.225), C:[0.225, 0.25)
-> 下一个出现的字符是 B，继续按照概率对 [0.125, 0.225) 区间进行划分：
-> (4) 第四次概率划分：A:[0.125, 0.175), B: [0.175, 0.215), C:[0.215, 0.225)
-> 依此类推，直到最后一个字符 B，下表给出了每个字符对应的目标区间。
-> <img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230227/ari_code.jpg" width = "550"/>
-> 完成上述操作之后，最终的目标区间是 [0.1686, 0.16868)，在其中任选一个**二进制表示最短**的小数，比如 0.16864，二进制为：0.00101011001011，只保留小数点之后的二进制编码：00101011001011，bit 长度为 14 位，比哈夫曼编码还要少 1 位。算术编码的解码也很直接，将二进制编码转换为小数 0.16864，根据其所处的区间位置，即可一步步还原出来字符串为 "AABABCABAB"。
+1. [**定长编码与霍夫曼编码**](https://www.jianshu.com/p/959938932f73)
+
+以一段英文字符串为例，"AABABCABAB" 共 10 个字符，A 出现了 5 次，B 出现了 4 次，C 出现了 1 次。ABC 3 种符号，如果用定长编码进行编码，每种符号至少需要 $\lceil{log_2 3}\rceil = 2$ 个 bit 来表示，那么字符串编码后的长度为 $ 10 * 2 = 20 ~ bit$。但是这种编码方式肯定是存在冗余的，因为 2 bit 实际上最多能够用来表征 4 种符号。
+
+如果采用霍夫曼编码，对于出现频次更少高的 A，可以使用更短的编码，如下图所示，根据频率的高低（作为权重）构建霍夫曼树：
+(1) B 和 C 的权重（频率）最小，对应的两个结点形成一个新的二叉树，根结点的权重为 B 和 C 的权重之和 0.5；
+(2) A 的权重也是 0.5，和 B/C 的根结点再形成一个新的二叉树；
+霍夫曼编码时，左子树统一编码为 0，右子树统一编码为 1；因此，A 的编码为 0，B 的编码为 10，C 的编码为 11。使用霍夫曼编码后，整个字符串的编码长度为 $5\times 1 + 4 \times 2 + 1 \times 2 = 15~bit$。
+
+霍夫曼编码相比于定长编码，将所需 bit 数从 20 降低至 15，但是还没有逼近香农定理的熵极限值。因为霍夫曼仍然是采用整数个 bit 对符号进行编码，比如 A 和 B 两个符号，出现概率分别为 0.4 和 0.1，但是都采用了相同 bit 的编码。根据信息学理论，字符串 "AABABCABAB" 的信息熵为：
+$$
+\begin{align}
+H(x) & = -\sum_x P(x)\log_2 P(x) \\\\
+     & = - (0.5 \times \log_2 0.5 + 0.4 \times \log_2 0.4 + 0.1 \times \log_2 0.1) \\\\
+     & = 1.361
+\end{align}
+$$
+
+2. **算术编码**
+
+下面采用算术编码对 "AABABCABAB" 进行编码，帮助理解算术编码的思想。算术编码会先对 [0, 1] 区间根据概率进行划分：
+(1) 第一次概率划分：A: [0, 0.5), B:[0.5, 0.9), C:[0.9, 1]
+第 1 个字符为 A，那么首先选中 A 的区间 [0, 0.5) 作为新目标区间，按照概率进行划分：
+(2) 第二次概率划分：A:[0, 0.25), B: [0.25, 0.45), C:[0.45, 0.5)
+下一个出现的字符仍然是 A，继续按照概率对 [0, 0.25) 区间进行划分：
+(3) 第三次概率划分：A:[0, 0.125), B:[0.125, 0.225), C:[0.225, 0.25)
+下一个出现的字符是 B，继续按照概率对 [0.125, 0.225) 区间进行划分：
+(4) 第四次概率划分：A:[0.125, 0.175), B: [0.175, 0.215), C:[0.215, 0.225)
+依此类推，直到最后一个字符 B，下表给出了每个字符对应的目标区间。
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230227/ari_code.jpg" width = "550"/>
+完成上述操作之后，最终的目标区间是 [0.1686, 0.16868)，在其中任选一个**二进制表示最短**的小数，比如 0.16864，二进制为：0.00101011001011，只保留小数点之后的二进制编码：00101011001011，bit 长度为 14 位，比哈夫曼编码还要少 1 位。算术编码的解码也很直接，将二进制编码转换为小数 0.16864，根据其所处的区间位置，即可一步步还原出来字符串为 "AABABCABAB"。
+
+3. **区间编码（基于区间的算术编码）：待补充**
+
 
 <!-- 以上就是对基于区间的算术编码的解释。由于不同计算机架构上浮点小数的表示可能存在细微差异，还包括一些浮点数近似的问题，因此编码器和解码器之间可能无法完全准确对应进而导致解码错误。 -->
 
 #### 训练目标
 
-Encodec 模型的训练目标包含重建损失函数（Reconstruction Loss）、GAN 的损失函数以及 RVQ 的 commitment loss。
+Encodec 的训练目标包含重建损失函数、GAN 的损失函数以及 RVQ 的 commitment loss。
 
 ##### 重建损失函数
 
@@ -138,10 +200,7 @@ $$ l_f(x, \hat{x}) = \frac{1}{\vert \alpha \vert \cdot \vert s \vert} \sum_{\alp
 每个 STFT 内部结构基本与 SoundStream 中介绍的相同，只不过在计算 STFT 时，采用了五组不同的窗长 [2048, 1024, 512, 256, 128]。此外，Encodec 扩展了对 48 kHz 采样率的支持，窗长相应地进行了加倍，每两个 batch 数据更新一次判别器的参数；Encodec 还增加对双通道音频的支持，两个通道独立处理即可。GAN 的生成器和判别器损失函数，以及增加的 feature matching 损失函数与 SoundStream 一直，不再赘述。
 
 > 一个需要注意的 trick：论文发现判别器更倾向于优化解码器端的参数，为了弱化这一问题，在模型参数更新时，24 kHz 情况下解码器参数更新进行 2/3 概率的加权，48 kHz 情况下权重系数为 0.5。
-
-##### 多带宽训练
-
-通过控制训练过程中音频经过的 RVQ 层数，可以实现不同比特率的编解码：24 kHz 采取 1.5/3/6/12 kbps 四种不同的比特率，48 kHz 采取 3/6/12/24 kbps 的比特率。
+> 此外，和 SoundStream 一样，通过控制训练过程中音频经过的 RVQ 层数，可以实现不同比特率的编解码：24 kHz 采取 1.5/3/6/12 kbps 四种不同的比特率，48 kHz 采取 3/6/12/24 kbps 的比特率。
 
 ##### 整体的损失函数
 $$L_{model} = \lambda_t \cdot l_t(x, \hat{x}) + \lambda_f \cdot l_f(x, \hat{f}) + \lambda_g \cdot l_g(\hat{x}) + \lambda_{feat} \cdot l_{feat}(x, \hat{x}) + \lambda_{w} \cdot l_w(w)$$
@@ -207,4 +266,7 @@ $$\tilde{g_{i}} = R \frac{\lambda_{i}}{\sum_j \lambda_{j}} \cdot \frac{g_i}{\<\v
 <br>
 
 ##### TODO
-Encodec 还对不同的量化器进行了对比研究，将 RVQ 替换为 DiffQ 或者基于 Gumbel-Softmax 的量化器，这两个量化器的原理后续有时间会进行补充。
+
+- [ ] 区间编码 + 源码示例
+- [ ] Encodec 基于 Gumbel-Softmax 的量化器
+- [ ] 补充完善相关的参考文献
