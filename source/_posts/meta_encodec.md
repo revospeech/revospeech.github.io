@@ -11,6 +11,8 @@ comment: false
 
 **Encodec** 是 Meta AI 于 2022 年 10 月份发表的神经网络音频编解码方法，达到了比之前介绍的 Google 提出的 **SoundStream** 更优的效果。从思想上和 SoundStream 几乎没有差别，沿用了 Encoder-Decoder 结构和 VQ 向量量化方法。本文对 Encodec 与 SoundStream 一致的部分不予赘述，只针对相关的改进进行分析和总结。SoundStream 的论文解读详见[链接](https://revospeech.github.io/2023/01/14/lyra_v2_soundstream)。
 
+<!-- more -->
+
 | 会议/期刊 | 年份 | 题目 | 链接 |
 | :---: | :---: | :---: | :---: |
 | arxiv | 2022 | High Fidelity Neural Audio Compression | [https://arxiv.org/abs/2210.13438](https://arxiv.org/abs/2210.13438) |

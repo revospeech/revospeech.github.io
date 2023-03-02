@@ -321,3 +321,7 @@ SoundStream @ 3kbps 相当于 EVS @ 9.6kbps 和 Opus@12kbps，SoundStream@6kbps 
 - **非官方实现（PyTorch）Lucidrains**: [https://github.com/lucidrains/audiolm-pytorch/blob/main/audiolm_pytorch/soundstream.py](https://github.com/lucidrains/audiolm-pytorch/blob/main/audiolm_pytorch/soundstream.py)
 - **非官方实现（Pytorch）wesbz**: [https://github.com/wesbz/SoundStream](https://github.com/wesbz/SoundStream)
 
+
+## 参考讲解视频
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/V4jj-yhiclk" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>

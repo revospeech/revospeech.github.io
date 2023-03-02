@@ -144,9 +144,6 @@ $$
 
 GAN 原论文中的实验主要是图像生成任务，此处不再过多展开，具体可以参考本文结尾的李沐老师的讲解视频。GAN 被提出后，在代码实现和实际训练过程中也暴露出一些问题，后续将具体介绍一些 GAN 中常用的方法（trick）作为补充。
 
-<br>
+### 参考讲解视频
 
-<div style="position: relative; width: 100%; height: 0; padding-bottom: 75%;">
-    <iframe src="//player.bilibili.com/player.html?aid=634089974&bvid=BV1rb4y187vD&cid=439574005&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="position: absolute; width: 100%; height: 100%; left: 0; top: 0;"></iframe>
-</div>
-
+<iframe width="560" height="315" src="https://www.youtube.com/embed/g_0HtlrLiDo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
