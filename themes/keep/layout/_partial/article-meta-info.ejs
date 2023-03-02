@@ -46,7 +46,7 @@ const ami_is_updated = articleObject.date !== articleObject.updated
     let temp_wordcount_count, temp_min2read_count = null
     try {
         temp_wordcount_count = wordcount(page.content)
-        temp_min2read_count = min2read(page.content)
+        temp_min2read_count = min2read(page.content, {cn: 320, en: 180})
     } catch (e) {
         temp_wordcount_count = 0
         temp_min2read_count = 0
