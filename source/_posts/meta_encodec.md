@@ -52,9 +52,10 @@ $$z_q(x) = e_k, k = arg\min_j \vert\vert z_e(x) - e_j \vert\vert_2, j = 1, 2, ..
 
 ```python
 def forward(self, latents: Tensor) -> Tensor:
-    # 1. 输入是 encoder 输出的 latents
+    # 1. 输入 latents 是 encoder 的输出
+    latents = latents.permute(0, 2, 3, 1).contiguous()
+    # [B x D x H x W] -> [B x H x W x D]
 
-    latents = latents.permute(0, 2, 3, 1).contiguous()  # [B x D x H x W] -> [B x H x W x D]
     latents_shape = latents.shape
     flat_latents = latents.view(-1, self.D)  # [BHW x D]
 
@@ -62,10 +63,12 @@ def forward(self, latents: Tensor) -> Tensor:
     # Compute L2 distance between latents and embedding weights
     dist = torch.sum(flat_latents ** 2, dim=1, keepdim=True) + \
            torch.sum(self.embedding.weight ** 2, dim=1) - \
-           2 * torch.matmul(flat_latents, self.embedding.weight.t())  # [BHW x K]
+           2 * torch.matmul(flat_latents, self.embedding.weight.t())  
+           # [BHW x K]
 
     # 3. 根据欧式距离最小的原则选择相应的 codebook index
-    # 注意此处使用了 torch.argmin 函数，这个函数操作是不可导的，本代码采用的是 straight-through estimator
+    # 注意此处使用了 torch.argmin 函数，这个函数操作是不可导的
+    # 本代码采用的是 straight-through estimator
     # Get the encoding that has the min distance
     encoding_inds = torch.argmin(dist, dim=1).unsqueeze(1)  # [BHW, 1]
 
@@ -95,7 +98,11 @@ def forward(self, latents: Tensor) -> Tensor:
     return quantized_latents.permute(0, 3, 1, 2).contiguous(), vq_loss  # [B x D x H x W]
 ```
 
-上述代码给出了 VQ 向量量化的 Pytorch 实现。其中，体现了 Straight-Through Estimator 思想的关键代码是：
+上述代码给出了 VQ 向量量化的 Pytorch 实现。其中，计算 Encoder 输出在 codebook 中距离最近向量 index 的代码是：
+```python
+encoding_inds = torch.argmin(dist, dim=1).unsqueeze(1)
+```
+`torch.argmin` 是无法求导的；因此，体现 Straight-Through Estimator 思想的关键代码是：
 ```python
 quantized_latents = latents + (quantized_latents - latents).detach()
 ```
@@ -111,20 +118,21 @@ $$ L_{total} = L_{rec} + \vert\vert sg[z_e(x)] - e \vert\vert_2^2 + \vert\vert z
 
 1. **重建损失函数** $L_{rec}$：用于 Encoder 的输入（编码前）和 Decoder 的输出（解码后）之间的差异。$L_{rec}$ 只会影响到 Encoder 和 Decoder 的参数更新，由于前文提到的 Straight-Through Estimator 直接将 $z_q(x)$ 的梯度拷贝给 $z_e(x)$，因此 $L_{rec}$ 不会影响 VQ 中 codebook 的各向量。
 
-2. **VQ 的核心损失函数**：第二项 $\vert\vert sg[z_e(x)] - e \vert\vert_2^2$ 用于缩小 codebook 中的 embedding 向量和 Encoder 的输出之间的距离。该项损失函数只用来更新 codebook 中的向量，为了消除对 Encoder 的参数影响，增加了 $sg[z_e(x)]$（stop-gradient）的限制。
+2. **VQ 的 codebook 损失函数**：第二项 $\vert\vert sg[z_e(x)] - e \vert\vert_2^2$ 用于缩小 codebook 中的 embedding 向量和 Encoder 的输出之间的距离。该项损失函数只用来更新 codebook 中的向量，对 Encoder 的参数不产生作用，因为增加了 $sg[z_e(x)]$（stop-gradient）的限制，相当于在 Encoder 的输出固定的情况下，让 codebook 中的向量和 Encoder 输出更接近。
 
-3. **VQ 的 commitment 损失函数**：第二项的 VQ 损失函数是从更新 codebook 的角度缩小 codebook 向量与 Encoder 输出的距离，但是 VQ-VAE 的论文引入了第三项 $\vert\vert z_e(x) - sg[e] \vert\vert_2^2$，称为 **commitment loss**，只用来更新 Encoder 的参数，使得 Encoder 的输出更接近于与其最近的 codebook 向量。该项损失函数只用来更新 Encoder 的参数，所以为了消除对 codebook 向量的影响，增加了 $sg[e]$（stop-gradient）的限制。对于多阶段 RVQ 量化器，设一共有 C 层量化，$z_c$ 表示第 c 层量化的输入，$q_c(z_c)$ 表示 $z_c$ 在当前量化层中距离最近的 codebook 向量，则 RVQ 整体的 commitment loss 可以定义为：
+3. **VQ 的 commitment 损失函数**：codebook 损失函数是从更新 codebook 的角度缩小 $e$ 与 $z_e(x)$ 的距离，VQ-VAE 引入了第三项 $\vert\vert z_e(x) - sg[e] \vert\vert_2^2$，称为 **commitment loss**，相当于固定 codebook 向量（增加了 $sg[e]$ 的限制），只更新 Encoder 的参数，使得 $z_e(x)$ 更接近于与其最近的 codebook 向量，避免 $z_e(x)$ 选择与之距离最近的 codebook 向量时，在不同的 codebook 向量中波动。对于多阶段 RVQ 量化器，设一共有 C 层量化，$z_c$ 表示第 c 层量化的输入，$q_c(z_c)$ 表示 $z_c$ 在当前量化层中距离最近的 codebook 向量，则 RVQ 整体的 commitment loss 可以定义为：
 
-$$l_w = \sum_{c=1}^{C} \vert\vert z_c - q_c(z_c) \vert\vert_2^{2}$$
+$$l_w = \sum_{c=1}^{C} \vert\vert z_c - sg[q_c(z_c)] \vert\vert_2^{2}$$
 
 > **使用 commitment loss 的动机**
-> 在 VQ-VAE 中，Encoder 输出向量和 codebook 码本向量都处于相同的空间中，两者都通过梯度下降算法进行训练，但是它们的更新速度可能不同。如果编码器参数的训练速度比 codebook 的训练速度快，那么编码器将会不断地调整其输出向量的位置，但 codebook 向量不能及时更新，会导致编码器的输出空间不断地扩大，出现以下问题：1) **过拟合**：编码器有更多的自由度来适应训练数据，可能会导致过度拟合训练数据；2) **训练不稳定**：由于输出空间不断扩大，可能导致训练过程不稳定、难以收敛等问题。
-> 总之，commitment loss 是为了控制编码器输出的向量，将其映射到最近的码本向量。这样可以保证输出空间的大小不会无限增大，避免过拟合和其他训练问题，从而提高模型的泛化能力和稳定性。
+> 在 VQ-VAE 中，Encoder 输出向量和 codebook 码本向量处于相同空间中，两者都通过梯度下降算法进行训练，但是更新速度可能不同。如果 Encoder 参数的训练速度比 codebook 快，那么 Encoder 将会不断地调整其输出向量的位置，但 codebook 向量不能及时更新，会导致 Encoder 的输出空间不断地扩大，出现以下问题：1) **过拟合**：Encoder 输出空间不断扩大，有更多的自由度来适应训练数据，导致过拟合训练数据；2) **训练不稳定**：Encoder 的输出在选择与之距离最近的 codebook 向量时“反复横跳”，导致训练不稳定、难以收敛等问题。
+> 总之，commitment loss 是为了控制编码器输出的向量，将其映射到最近的码本向量，保证编码器的输出不会过分“自由”，避免过拟合和训练不稳定问题，从而提高模型的泛化能力和稳定性。
 
-损失函数三部分各自只负责 VQ 中一部分参数的更新：第一项用来优化 Encoder 和 Decoder 不用来优化 codebook，第二项只用来优化 codebook 不涉及 Encoder 和 Decoder，第三项只用来优化 Encoder 不涉及 codebook 和 Decoder。反向总结，Encoder 由第一项和第三项损失函数共同优化，codebook 由第二项损失函数来优化，Decoder 只由第一项损失函数优化。
+三部分损失函数各自只负责 VQ 中一部分参数的更新：第一项用来优化 Encoder 和 Decoder 不用来优化 codebook，第二项只用来优化 codebook 不涉及 Encoder 和 Decoder，第三项只用来优化 Encoder 不涉及 codebook 和 Decoder。反向总结，Encoder 由第一项和第三项损失函数共同优化，codebook 由第二项损失函数来优化，Decoder 只由第一项损失函数优化。
 
-> Encoder 的输出 $z_e(x)$ 经过量化器所得到的 $z_q(x)$ 作为 Decoder 的输入直接作用于重建损失函数的计算，损失函数的变化也会通过梯度反向传播影响到 **Encoder 的参数更新**。因此，整个量化和重建（Reconstruction）的过程不只是为了学习到更好的量化器 VQ 部分，也会使得 Encoder 学到如何改变输出从而降低重建损失函数。
+> Encoder 的输出 $z_e(x)$ 经过量化器得到的 $z_q(x)$ 作为 Decoder 的输入，直接作用于重建损失函数的计算，损失函数的变化也会通过梯度反向传播影响到 Encoder 的参数更新。因此，量化和重建的过程不只是为了学习到更好的量化器 VQ 部分，也会使得 Encoder 学到如何改变输出从而降低重建损失函数。
 
+---
 
 #### 语言建模与熵编码
 
@@ -134,14 +142,17 @@ Encoder-Decoder 结构和 RVQ 的使用，都是在 SoundStream 论文中已经�
 
 为了让模型能够在单核 CPU 上达到实时的端到端音频编解码，Encodec 提出了一种推理加速的设计。使用一个轻量级的 Transformer 语言模型，共包含 5 层 TransformerEncoder，其中 Self-Attention 的 head 和 $d_{model}$ 维度分别为 8 和 200，Positionwise Feedforward 层的隐层大小为 800，不使用 dropout。每个 Self-Attention 层的感受野是因果的，只关注过去 3.5 秒的信息；同时，Encodec 还通过改变正余弦绝对位置编码（positional embedding）的偏移量（offset），来模拟当前音频片段来自于长音频中间部分的情况。
 
-Encoder 的降采样倍数固定时，音频压缩的比特率只与 RVQ 包含的量化层数 $N_q$ 有关，对应于 $N_q$ 个 codebook。设 $t-1$ 时刻 Encoder 的输出为 $z_e^{(t-1)}(x)$，在 $N_q$ 个 codebook（codebook 大小均设为 $N_C$，用 $\log_2 N_C$ 比特来表征 codebook 中的向量编号）中对应的编号分别为 $m_1, m_2, ..., m_{N_q}$。将这 $N_q$ 个编号分别用各自 codebook 对应的 embedding table 映射到连续空间中得到 $d_{model}$ 维度的 embeddings，再将$N_q$个 embeddings 相加，得到 $e_q^{(t-1)}(x)$。Transformer 语言模型正是在 $e_q^{(t)}(x)$ 这个层面上进行建模的。Transformer 语言模型根据历史信息预测得到的 $e_q^{(t)}(x)$ ，被送入到 $N_q$ 个全连接层，对应于 $N_C$ 类的分类任务。训练时，第$i$个全连接层经过 softmax 之后的预测目标是第$i$个 RVQ 量化后的编号；推理时，第$i$个全连接层经过 softmax 后的输出，是第$i$个 codebook 上 $N_C$ 个编号的概率分布。
+Encoder 的降采样倍数固定时，音频压缩的比特率只与 RVQ 包含的量化层数 $N_q$ 有关，对应于 $N_q$ 个 codebook。
+- 设 $t-1$ 时刻 Encoder 的输出为 $z_e^{(t-1)}(x)$，在 $N_q$ 个 codebook（codebook 大小均设为 $N_C$，用 $\log_2 N_C$ 比特来表征 codebook 中的向量编号）中对应的编号分别为 $m_1, m_2, ..., m_{N_q}$。
+- 将这 $N_q$ 个编号分别用各自 codebook 对应的 embedding table 映射到连续空间中得到 $d_{model}$ 维度的 embeddings，再将$N_q$个 embeddings 相加，得到 $e_q^{(t-1)}(x)$。
 
-引入 Transformer 语言建模的好处很明显：原始的多阶段 RVQ 量化方法，需要逐级在每个 codebook 上进行一次量化，这一过程无法一次性完成；但是引入语言模型后，第 $t$ 时刻每个 codebook 上的编号是直接通过 Transformer 输入的历史信息（$t-1$时刻及之前的输入）一次性预测得到的。总之，Encodec 通过引入轻量级的 Transformer 语言模型，以及额外学习 $N_q$ 个 embedding table 将对应 codebook 的向量编号映射到连续空间，将多阶段的量化转换成了多个 codebook 编号的一次性预测，从而实现了更快的推理。
+Transformer 语言模型正是在 $e_q^{(t)}(x)$ 这个层面上进行建模的，根据历史信息预测得到的 $e_q^{(t)}(x)$ ，被送入到 $N_q$ 个全连接层，对应于 $N_C$ 类的分类任务。训练时，第$i$个全连接层经过 softmax 之后的预测目标是第$i$个 RVQ 量化后的编号；推理时，第$i$个全连接层经过 softmax 后的输出，是第$i$个 codebook 上 $N_C$ 个编号的概率分布。
 
+引入 Transformer 语言建模的好处很明显：原始的多阶段 RVQ 量化方法，需要逐级在每个 codebook 上进行一次量化，这一过程无法一次性完成；但是引入语言模型后，第 $t$ 时刻每个 codebook 上的编号是直接通过 Transformer 输入的历史信息（$t-1$时刻及之前的输入）**一次性预测**得到的。总之，Encodec 通过引入轻量级的 Transformer 语言模型，以及额外学习 $N_q$ 个 embedding table 将对应 codebook 的向量编号映射到连续空间，将多阶段的量化转换成了多个 codebook 编号的一次性预测，从而能够加速推理。
 
 ##### 熵编码
 
-熵编码是一种根据数据的统计特征（比如频率分布）将数据编码为变长编码的技术，核心思想是将出现频率更高的符号用更短的编码来表示，常见的熵编码方法包括霍夫曼编码和算术编码。相比于霍夫曼编码，算术编码能够更有效地压缩数据（[参考链接](https://www.jianshu.com/p/959938932f73)），但同时也需要更高的计算成本，Encodec 使用的是算术编码器，对 Transformer 语言模型预测出的概率分布进行压缩。
+熵编码是一种根据数据的统计特征（比如频率分布）将数据编码为变长编码的技术，核心思想是将出现频率更高的符号用更短的编码来表示，常见的熵编码方法包括霍夫曼编码和算术编码。相比于霍夫曼编码，算术编码能够更有效地压缩数据（[参考链接](https://www.jianshu.com/p/959938932f73)），但同时也需要更高的计算成本。Encodec 使用的是**基于区间的算术编码**，也可以称为**区间编码**，再对 Transformer 预测出的概率分布进行压缩。
 
 1. [**定长编码与霍夫曼编码**](https://www.jianshu.com/p/959938932f73)
 
@@ -163,7 +174,8 @@ $$
 
 2. **算术编码**
 
-下面采用算术编码对 "AABABCABAB" 进行编码，帮助理解算术编码的思想。算术编码会先对 [0, 1] 区间根据概率进行划分：
+为了帮助更好地理解 Encodec 所用的区间编码，下面先对 "AABABCABAB" 进行算术编码，帮助理解其思想。
+算术编码会先对 [0, 1] 区间根据概率进行划分：
 (1) 第一次概率划分：A: [0, 0.5), B:[0.5, 0.9), C:[0.9, 1]
 第 1 个字符为 A，那么首先选中 A 的区间 [0, 0.5) 作为新目标区间，按照概率进行划分：
 (2) 第二次概率划分：A:[0, 0.25), B: [0.25, 0.45), C:[0.45, 0.5)
@@ -172,8 +184,25 @@ $$
 下一个出现的字符是 B，继续按照概率对 [0.125, 0.225) 区间进行划分：
 (4) 第四次概率划分：A:[0.125, 0.175), B: [0.175, 0.215), C:[0.215, 0.225)
 依此类推，直到最后一个字符 B，下表给出了每个字符对应的目标区间。
-<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230227/ari_code.jpg" width = "550"/>
-完成上述操作之后，最终的目标区间是 [0.1686, 0.16868)，在其中任选一个**二进制表示最短**的小数，比如 0.16864，二进制为：0.00101011001011，只保留小数点之后的二进制编码：00101011001011，bit 长度为 14 位，比哈夫曼编码还要少 1 位。算术编码的解码也很直接，将二进制编码转换为小数 0.16864，根据其所处的区间位置，即可一步步还原出来字符串为 "AABABCABAB"。
+
+<!-- <img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230227/ari_code.jpg" width = "550"/> -->
+
+
+| 当前字符 | 当前目标区间 |
+| :---: | :---: |
+| A | [0, 0.5) |
+| A | [0, 0.25) |
+| B | [0.125, 0.225) |
+| A | [0.125, 0.175) |
+| B | [0.15, 0.17) |
+| C | [0.168, 0.17) |
+| A | [0.168, 0.169) |
+| B | [0.1685, 0.1689) |
+| A | [0.1685, 0.1687) |
+| B | [0.1686, 0.16868) |
+
+
+完成上述操作之后，最终的目标区间是 [0.1686, 0.16868)，在其中任选一个**二进制表示最短**的小数，比如 0.16864，二进制为：0.00101011001011，只保留小数点之后的二进制编码：00101011001011，bit 长度为 14 位，比哈夫曼编码还要少 1 位。算术编码的解码也很直接，将二进制编码还原为小数 0.16864，根据其所处的区间位置，对应的字符串是唯一的，反向对应得到字符串为 "AABABCABAB"。
 
 3. **区间编码（基于区间的算术编码）：待补充**
 
@@ -206,15 +235,16 @@ $$ l_f(x, \hat{x}) = \frac{1}{\vert \alpha \vert \cdot \vert s \vert} \sum_{\alp
 $$L_{model} = \lambda_t \cdot l_t(x, \hat{x}) + \lambda_f \cdot l_f(x, \hat{f}) + \lambda_g \cdot l_g(\hat{x}) + \lambda_{feat} \cdot l_{feat}(x, \hat{x}) + \lambda_{w} \cdot l_w(w)$$
 其中，$l_g(\hat{x})$ 包含了生成器和判别器两个损失函数，$l_w(w)$ 是 RVQ 的 commitment loss。
 
-<!-- ##### 损失函数均衡器
-Encodec 提出了一种损失函数均衡器（loss balancer），用于提高训练的稳定性，balancer 能够根据不同损失函数的梯度变化调整各个损失函数的权重。
-假设损失函数 $l_i$ 只与模型的输入 $\hat{x}$ 有关，定义以下两个数值：$g_i = \frac{\partial l_i}{\partial \hat{x}}$ 表示损失函数 $l_i$ 相对于 $\hat{x}$ 的梯度，$\<\vert\vert g_i \vert\vert_2 \>_{\beta}$ 表示 $g_i$ 在最后一批训练数据上的指数移动平均（EMA）。
+##### 损失函数均衡器
+Encodec 提出了一种损失函数均衡器（Loss Balancer），用于提高训练的稳定性。Loss Balancer 能够根据不同损失函数传回的梯度大小进行规整，避免参数更新受到单个损失函数梯度的过度影响。
 
-对于各种损失函数的权重 $\lambda_{i}$，定义下面的梯度：
+假设损失函数 $l_i$ 只与模型的输入 $\hat{x}$ 有关，定义以下两个数值：$g_i = \frac{\partial l_i}{\partial \hat{x}}$ 表示损失函数 $l_i$ 相对于 $\hat{x}$ 的梯度，$\<\vert\vert g_i \vert\vert_2 \>_{\beta}$ 表示梯度 $g_i$ 在最后一批训练数据上的指数移动平均（EMA）。
+
+给定各种损失函数的权重 $\lambda_{i}$，定义下面的新梯度：
 $$\tilde{g_{i}} = R \frac{\lambda_{i}}{\sum_j \lambda_{j}} \cdot \frac{g_i}{\<\vert\vert g_i \vert\vert_2 \>_{\beta}}$$
 
-在参数更新时，反向传播的梯度使用 $\sum_{i}\tilde{g_i}$ 而不是原本的 $\sum_i \lambda_i g_i$。论文中 $R=1, \beta=0.999$，除了 VQ 的 commitment loss 之外（commitment loss 与编解码器的输出无关），其他的损失函数加入到损失函数均衡器中。
- -->
+在参数更新时，反向传播的梯度使用 $\sum_{i}\tilde{g_i}$ 而不是原本的 $\sum_i \lambda_i g_i$。论文中 $R=1$, EMA 的 $\beta=0.999$。除了 VQ 的 commitment loss $l_w$ 之外（commitment loss 与编解码器的输出无关），其他的损失函数加入到损失函数均衡器中，所以上式中 $\sum_j \lambda_{j}$ 的 $\lambda_{j} \in \\{\lambda_{t}, \lambda_{f}, \lambda_{g}, \lambda_{feat}\\}$。
+
 ### 实验与结论
 
 #### 实验准备
