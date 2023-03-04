@@ -352,6 +352,7 @@ $$\tilde{g_{i}} = R \frac{\lambda_{i}}{\sum_j \lambda_{j}} \cdot \frac{g_i}{\<\v
 
 
 ### 参考文献/链接
+- **Encodec 官方博客**：[https://ai.facebook.com/blog/ai-powered-audio-compression-technique](https://ai.facebook.com/blog/ai-powered-audio-compression-technique/).
 - **SoundStream**：Zeghidour, Neil, et al. "Soundstream: An end-to-end neural audio codec." IEEE/ACM Transactions on Audio, Speech, and Language Processing 30 (2021): 495-507. [[pdf]](https://arxiv.org/pdf/2107.03312.pdf)
 - **SoundStream 论文笔记**：[https://revospeech.github.io/2023/01/14/lyra_v2_soundstream](https://revospeech.github.io/2023/01/14/lyra_v2_soundstream/).
 - **熵编码**：[https://zhuanlan.zhihu.com/p/390684936](https://zhuanlan.zhihu.com/p/390684936).
