@@ -71,7 +71,7 @@ GAN 的判别器可以定义成 $D(x;θ_d)$ ，其中 $x$ 表示判别器的输�
 
 生成器和判别器如此交替更新，直到达到类似图 (d) 所示的理想情况，生成样本分布和真实样本分布完全一样，判别器也完全无法区分样本究竟来自哪个分布，意味着生成的样本已经达到了“以假乱真”的地步。
 
-### GAN 的具体流程
+### GAN 的具体训练流程
 
 <img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230223/gan-train-proc.jpg" width = "650"/>
 
@@ -93,7 +93,7 @@ GAN 的生成器的目标，是让生成的样本分布和真实样本的分布�
 
 1. 固定生成器 G 时，求判别器 D 的最优解：
 
-对于优化目标 $$ \min_D \max_G V(D, G) $，只关注内层的 max 目标时，目标可以表示为：
+对于优化目标 $ \min_D \max_G V(D, G) $，只关注内层的 $\max$ 目标时，目标可以表示为：
 
 $$
 \begin{align}
@@ -109,7 +109,7 @@ $$ D_G^{\star}(x) = \frac{p_{data}(x)}{p_{data}(x) + p_g(x)} $$
 2. 将 D 的最优解代回，得到固定 D 优化 G 时的目标函数：
 $$ 
 \begin{align}
-    C(G) & = max_D V(G,D) \\\\
+    C(G) & = \max_D V(G,D) \\\\
     & = E_{x \in p_{data}}[\log D_G^{\star}(x)] + E_{z \in p_z}[\log (1 - D_G^{\star}(G(z)))] \\\\
     & = E_{x \in p_{data}}[\log D_G^{\star}(x)] + E_{x \in p_g}[\log (1 - D_G^{\star}(x)] \\\\
     & = E_{x \in p_{data}} [\log\frac{p_{data}(x)}{p_{data}(x) + p_g(x)}] + E_{x \in p_g} [\log\frac{p_{g}(x)}{p_{data}(x) + p_g(x)}]
