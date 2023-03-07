@@ -120,9 +120,9 @@ $$
 
 > **数学基础知识复习**
 > 1. 若连续随机变量 $x \in p(x)$, 则 $x$ 的期望计算方式如下：
-> $$ E(x) = \int_{-\infty}^{+\infty} xp(x) dx$$
+> $$ E(x) = \int xp(x) dx$$
 > 2. **KL (Kullback-Leibler) 散度** 常被用于衡量两个分布（如 $p_x$ 和 $q_x$）间的相似程度，数学表达式为：
-> $$ D_{KL}(p || q) = \int_{-\infty}^{+\infty} p(x) \log \frac{p(x)}{q(x)} dx$$
+> $$ D_{KL}(p || q) = \int p(x) \log \frac{p(x)}{q(x)} dx$$
 > 计算 KL 散度时对两个分布的顺序是有要求的，属于非对称关系，即 $ D_{KL}(p || q) \neq D_{KL}(q || p) $。
 > 3. **JS (Jensen-Shannon) 散度** 也可用于衡量两个分布间的相似程度，解决了 KL 散度的非对称的问题，数学表达式为：
 > $$ D_{JS}(p || q) = \frac{1}{2} D_{KL}(p || \frac{p+q}{2}) + \frac{1}{2} D_{KL}(q || \frac{p+q}{2}) $$
@@ -133,8 +133,8 @@ $$
 $$
 \begin{align}
 C(G) & = E_{x \in p_{data}} [\log\frac{p_{data}(x)}{p_{data}(x) + p_g(x)}] + E_{x \in p_g} [\log\frac{p_{g}(x)}{p_{data}(x) + p_g(x)}] \\\\
-& = \int_{-\infty}^{+\infty} p_{data}(x) \log \frac{p_{data}(x)}{p_{data}(x) + p_{g}(x)} dx + \int_{-\infty}^{+\infty} p_{g}(x) \log \frac{p_{g}(x)}{p_{data}(x) + p_{g}(x)} dx \\\\
-& = [\log\frac{1}{2} + \int_{-\infty}^{+\infty} p_{data}(x) \log \frac{p_{data}(x)}{\frac{p_{data}(x) + p_{g}(x)}{2}} dx] + [\log\frac{1}{2} + \int_{-\infty}^{+\infty} p_{g}(x) \log \frac{p_{g}(x)}{\frac{p_{data}(x) + p_{g}(x)}{2}} dx] \\\\
+& = \int p_{data}(x) \log \frac{p_{data}(x)}{p_{data}(x) + p_{g}(x)} dx + \int p_{g}(x) \log \frac{p_{g}(x)}{p_{data}(x) + p_{g}(x)} dx \\\\
+& = [\log\frac{1}{2} + \int p_{data}(x) \log \frac{p_{data}(x)}{\frac{p_{data}(x) + p_{g}(x)}{2}} dx] + [\log\frac{1}{2} + \int p_{g}(x) \log \frac{p_{g}(x)}{\frac{p_{data}(x) + p_{g}(x)}{2}} dx] \\\\
 & = -log4 + D_{KL}(p_{data}||\frac{p_{data} + p_g}{2}) + D_{KL}(p_{g}||\frac{p_{data} + p_g}{2}) \\\\
 & = -log4 + 2 \times D_{JS}(p_{data} || p_g)
 \end{align}

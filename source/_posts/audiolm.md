@@ -41,7 +41,6 @@ $$LLH = \prod_{t=1}^{T'} p(y_t \vert y_{\lt t})$$
 
 需要说明的是，AudioLM 训练时，tokenizer 和 detokenizer 都是在大量的音频数据集上预训练好的模型，具有很好的泛化性，因此这些参数固定不变，只需训练语言模型部分的参数即可。
 
-
 #### 不同的离散表征
 
 针对音频生成任务，将输入音频离散化为 token 时，主要有两点要求：一方面，离散的 token 满足较低比特率的同时，能够恢复出高质量的音频；另一方面，离散的 token 能够获取到音频的长时间粒度下的语义表征，使得后续的语言模型能够利用语义信息，保持音频节奏/语义内容等方面的连贯性。然而，基于前人在音频领域的研究，这两个要求的出发点不同，往往是存在矛盾的，因为一般来说更 compact 的语义表征会伴随着波形细节信息的明显丢失。
@@ -86,9 +85,14 @@ $$p(z_t \vert z_{\lt t}, y_{\lt t}) \approx p(z_t \vert z_{\lt t})$$
 上图给出了 AudioLM 建模的三阶段流程，建模粒度从粗到细：从最粗粒度的语义 token，到声学 token 中的粗粒度表征，再到声学 token 中的细粒度表征，层层递进，逐步合成高质量的音频。
 
 ##### 阶段一：语义建模
+
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230306/audiolm-stage1.jpg" width = "700"/>
+
 阶段一用 wav2vec-BERT 抽取音频的离散语义 token，在语义 token 上进行自回归建模 $p(z_t \vert z_{\lt t})$，用于建模长时间范围内的语义结构。
 
 ##### 阶段二：粗粒度声学建模
+
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230306/audiolm-stage2.jpg" width = "700"/>
 
 阶段二采用和语义建模类似的方法，但只在 SoundStream 的前 $Q'$ 个量化器的输出上进行自回归建模，同时将第一阶段得到的语义 token 作为条件输入。由于 SoundStream 的 RVQ 属于多阶段量化，声学 token 也具有一定的层次结构，论文认为：前若干个量化器（**粗粒度量化器，coarse quantizer**）可以认为主要用来恢复说话人特性、录制环境等偏向全局的粗粒度信息，而剩下的量化器（**细粒度量化器，fine quantizer**）则更侧重于波形的细节信息。
 
@@ -98,6 +102,8 @@ $$p(z_t \vert z_{\lt t}, y_{\lt t}) \approx p(z_t \vert z_{\lt t})$$
 - $y_{t}^{\lt q}$ 表示当前时刻下，前 $q-1 (q \leq Q')$ 个量化器的 token 序列，同样进行展开。
 
 ##### 阶段三：细粒度声学建模
+
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230306/audiolm-stage3.jpg" width = "700"/>
 
 阶段三在细粒度量化器输出的声学 token 上进行建模，使用 $Q'$ 个粗粒度量化器的 token 作为条件输入，对 $p(y_t^{q} \vert y^{\leq Q'}, y_{\lt t}^{\gt Q'}, y_t^{\lt q}), Q' \lt q \leq Q$ 进行建模，其中：
 - $y^{\leq Q'}$ 表示前 $Q'$ 个量化器输出的 token 序列，将矩阵展开；
@@ -122,22 +128,51 @@ $$p(z_t \vert z_{\lt t}, y_{\lt t}) \approx p(z_t \vert z_{\lt t})$$
 
 #### 实验设计与准备
 
-**两种实验任务:** 分别是语音续写和钢琴曲续写：语音续写需要生成的音频满足音色、录音环境、韵律方面的一致性，并且语义上保证准确和连贯；音乐续写则需要生成的音频满足旋律、和声和节奏上的连续性。
+**两种实验任务:** 分别是语音续写和钢琴曲续写：语音续写需要生成的音频满足音色、录音环境、韵律方面的一致性，并且语义上保证准确和连贯；钢琴曲续写则需要生成的音频满足旋律、和声和节奏上的连续性。语音续写是基于 3 秒的语音 prompt 继续生成 7 秒的音频；钢琴曲续写是基于 4 秒的音频 prompt 继续生成 20 秒的音频。
 
-**数据集：** 语音数据采用无标签的 6 万小时的 Libri-Light 数据。
+**数据集：** 语音数据采用无标签的 6 万小时的 Libri-Light 数据；钢琴曲使用的是谷歌自有的 4 万小时数据，覆盖初学者到钢琴家级别、不同声学环境、不同曲调的钢琴曲声音。
 
 **实验配置：** wav2vec-Bert 采用 6 亿参数量的模型，输出 embedding 来自 MLM 部分的第 7 层，离散化聚类时类别个数 $K=1024$；SoundStream 采用 320 倍降采样，$Q=12$ 个量化器，前 $Q'=4$个量化器作为第二阶段的粗粒度声学 token，后面 8 个量化器用于第三阶段的细粒度声学 token；而 Transformer 自回归语言模型的参数：12 层，self-attention 包含 16 个 head、embedding 维度为 1024，feed-forward 层的隐层大小为 4096，使用的是 $T5$ 相对位置编码。
 
 #### 语义 token 的信息
 
-使用 LibriSpeech test-clean 中 4-10 秒内的音频，采用第二类推理方式**声学生成**，每条音频随机生成三个样本，使用 Conformer-Transducer 的 Large 模型对生成的样本进行识别，计算得到 CER 和 WER，用于衡量生成音频在语义内容上的正确性和一致性。
+本实验用于测试语义 token 是否保留了语音的内容信息。使用 LibriSpeech test-clean 中 4-10 秒内的音频，采用第二类推理方式**声学生成**，每条音频随机生成三个样本，使用 Conformer-Transducer 的 Large 模型对生成的样本进行识别，计算得到 CER 和 WER，用于衡量生成音频在语义内容上的正确性和一致性。
 
 从下表的实验结果可以看出，AudioLM 生成的语音在内容上的一致性还是相对比较高的，尤其是考虑到**声学生成**任务中，新生成的音频可能会带有一些额外的噪声，导致语音识别系统的效果也会有些降低。
 
 <img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230227/table2.jpg" width = "520"/>
 
 #### 声学 token 的信息
-同样地，使用 LibriSpeech 中的 291 个说话人的音频，在第二种（**声学生成**）和第三种（**音频续写**）推理方式下，对新生成的音频和原始音频进行说话人分类，实验结果如下图所示。从中可以得到一些结论：**声学生成**因为只保留了真实音频的语义 token，不包含说话人音色方面的信息，所以说话人分类准确率很低；但是音频续写以 prompt 的真实声学 token 作为部分条件输入，保持了音色的连续性，因此说话人分类准确率很高。
+同样地，本部分用于验证声学 token 包含的声学特性的信息。使用 LibriSpeech 中的 291 个说话人的音频，在第二种（**声学生成**）和第三种（**音频续写**）推理方式下，对新生成的音频和原始音频进行说话人分类，实验结果如下图所示。从中可以得到一些结论：**声学生成**因为只保留了真实音频的语义 token，不包含说话人音色方面的信息，所以说话人分类准确率很低；但是**音频续写**以 prompt 的真实声学 token 作为部分条件输入，保持了音色的连续性，因此说话人分类准确率很高。
 
 <img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230227/table3.jpg" width = "520"/>
 
+#### 语言学信息评测
+论文还针对基于语义 token 进行语言建模的方法进行更细致的评价，采用以下两种评价指标（均来自于 ZeroResource 2021 年的比赛），验证 AudioLM 在语义内容上的建模效果：
+- **sWUGGY**：两个发音相近的词，一个真实存在，一个并不是真正的词，如果能够给真实存在的词更高的概率，说明模型效果越好；
+- **sBLIMP**：模型需要赋予语法正确的句子比语法错误的句子更高的概率，准确率越高，说明模型的语义能力越强。
+
+下图是两个评测的实验结果，可以看出，AudioLM 的语义建模能力很强。
+
+<img src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230307/table-iv.jpg" width = "520"/>
+
+> **实验细节说明：**
+> 实验评测使用 ZeroResource 2021 年比赛的开发集，针对 sWUGGY 和 sBLIMP 两个评测，分别有 10000 和 6300 组测试数据对。sWUGGY 评测时，只考虑在 LibriSpeech 中出现过的词（集内词）。使用模型输出的似然值作为评价概率高低的依据，但是 sBLIMP 评测的正样本和负样本序列长度明显不同，为了避免句子长度对评测的影响，将似然值除以序列长度，正则化之后作为判断句子正确与否的指标。
+> AudioLM 力压包括 BERT, HuBert, RoBERTA, CPC_BERT 等在内的一众模型，达到了最优的效果。
+
+#### 钢琴曲续写实验
+针对钢琴曲的续写，论文单独使用 4 万小时钢琴声训练了一个 AudioLM 模型，不过对 SoundStream 模块的参数进行了更改，采用 3 层的 RVQ，每层 codebook 的大小为 $2^{14} = 16384$，所以去除了第三阶段的训练，而是在第二阶段一次性预测所有的声学 token。实验组音频是使用 AudioLM 进行续写，对照组音频是去除了 wav2vec-BERT 提取的语义 token 建模，主观评测显示 83.3% 评测数据对中，AudioLM 续写的钢琴曲更受评测人青睐。
+
+
+### 参考文献/链接
+- **官方博客**：[https://ai.googleblog.com/2022/10/audiolm-language-modeling-approach-to.html](https://ai.googleblog.com/2022/10/audiolm-language-modeling-approach-to.html).
+- **SoundStream**：Zeghidour, Neil, et al. "Soundstream: An end-to-end neural audio codec." IEEE/ACM Transactions on Audio, Speech, and Language Processing 30 (2021): 495-507. [[pdf]](https://arxiv.org/pdf/2107.03312.pdf)
+- **SoundStream 论文笔记**：[https://revospeech.github.io/2023/01/14/lyra_v2_soundstream](https://revospeech.github.io/2023/01/14/lyra_v2_soundstream/).
+- **wav2vec-BERT**：Chung, Yu-An, et al. "W2v-bert: Combining contrastive learning and masked language modeling for self-supervised speech pre-training." 2021 IEEE Automatic Speech Recognition and Understanding Workshop (ASRU). IEEE, 2021. [[pdf]](https://arxiv.org/pdf/2108.06209.pdf)
+- **ZeroChallenge 2021 评测指标**：[https://zerospeech.com/challenge_archive/2021/02_track1/#evaluation](https://zerospeech.com/challenge_archive/2021/02_track1/#evaluation)
+
+
+
+
+### demo 视频
+<iframe width="560" height="315" src="https://www.youtube.com/embed/_xkZwJ0H9IU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
