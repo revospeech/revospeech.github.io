@@ -165,13 +165,12 @@ $$p(z_t \vert z_{\lt t}, y_{\lt t}) \approx p(z_t \vert z_{\lt t})$$
 
 
 ### 参考文献/链接
-- **官方博客**：[https://ai.googleblog.com/2022/10/audiolm-language-modeling-approach-to.html](https://ai.googleblog.com/2022/10/audiolm-language-modeling-approach-to.html).
+- **AudioLM 示例音频**：[https://google-research.github.io/seanet/audiolm/examples](https://google-research.github.io/seanet/audiolm/examples/)
+- **AudioLM 官方博客**：[https://ai.googleblog.com/2022/10/audiolm-language-modeling-approach-to.html](https://ai.googleblog.com/2022/10/audiolm-language-modeling-approach-to.html).
 - **SoundStream**：Zeghidour, Neil, et al. "Soundstream: An end-to-end neural audio codec." IEEE/ACM Transactions on Audio, Speech, and Language Processing 30 (2021): 495-507. [[pdf]](https://arxiv.org/pdf/2107.03312.pdf)
 - **SoundStream 论文笔记**：[https://revospeech.github.io/2023/01/14/lyra_v2_soundstream](https://revospeech.github.io/2023/01/14/lyra_v2_soundstream/).
 - **wav2vec-BERT**：Chung, Yu-An, et al. "W2v-bert: Combining contrastive learning and masked language modeling for self-supervised speech pre-training." 2021 IEEE Automatic Speech Recognition and Understanding Workshop (ASRU). IEEE, 2021. [[pdf]](https://arxiv.org/pdf/2108.06209.pdf)
 - **ZeroChallenge 2021 评测指标**：[https://zerospeech.com/challenge_archive/2021/02_track1/#evaluation](https://zerospeech.com/challenge_archive/2021/02_track1/#evaluation)
-
-
 
 
 ### demo 视频

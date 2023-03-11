@@ -307,6 +307,11 @@ SoundStream @ 3kbps 相当于 EVS @ 9.6kbps 和 Opus@12kbps，SoundStream@6kbps 
 ---
 
 ## 参考文献/链接
+- **官方博客**: [https://opensource.googleblog.com/2022/09/lyra-v2-a-better-faster-and-more-versatile-speech-codec.html](https://opensource.googleblog.com/2022/09/lyra-v2-a-better-faster-and-more-versatile-speech-codec.html)
+- **示例音频**: [https://google-research.github.io/seanet/soundstream/examples](https://google-research.github.io/seanet/soundstream/examples/)
+- **官方开源**: [https://github.com/google/lyra](https://github.com/google/lyra)
+- **非官方实现（PyTorch）Lucidrains**: [https://github.com/lucidrains/audiolm-pytorch/blob/main/audiolm_pytorch/soundstream.py](https://github.com/lucidrains/audiolm-pytorch/blob/main/audiolm_pytorch/soundstream.py)
+- **非官方实现（Pytorch）wesbz**: [https://github.com/wesbz/SoundStream](https://github.com/wesbz/SoundStream)
 - **Lyra v1**: Kleijn, W. Bastiaan, et al. "Generative Speech Coding with Predictive Variance Regularization." arXiv preprint arXiv:2102.09660 (2021). [[pdf]](https://arxiv.org/pdf/2102.09660.pdf)
 - **AudioLM**: Borsos, Zalán, et al. "Audiolm: a language modeling approach to audio generation." arXiv preprint arXiv:2209.03143 (2022). [[pdf]](https://arxiv.org/pdf/2209.03143.pdf)
 - **MusicLM**: Agostinelli, Andrea, et al. "MusicLM: Generating Music From Text." arXiv preprint arXiv:2301.11325 (2023). [[pdf]](https://arxiv.org/pdf/2301.11325.pdf)
@@ -315,11 +320,6 @@ SoundStream @ 3kbps 相当于 EVS @ 9.6kbps 和 Opus@12kbps，SoundStream@6kbps 
 - **Jukebox**: Dhariwal, Prafulla, et al. "Jukebox: A generative model for music." arXiv preprint arXiv:2005.00341 (2020). [[pdf]](https://arxiv.org/pdf/2005.00341.pdf)
 - **FiLM**: Perez, Ethan, et al. "Film: Visual reasoning with a general conditioning layer." Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 32. No. 1. 2018. [[pdf]](https://arxiv.org/pdf/1709.07871.pdf)
 - **ViSQOL 指标**: Chinen, Michael, et al. "ViSQOL v3: An open source production ready objective speech and audio metric." 2020 twelfth international conference on quality of multimedia experience (QoMEX). IEEE, 2020. [[pdf]](https://arxiv.org/pdf/2004.09584.pdf)
-- **官方博客**: [https://opensource.googleblog.com/2022/09/lyra-v2-a-better-faster-and-more-versatile-speech-codec.html](https://opensource.googleblog.com/2022/09/lyra-v2-a-better-faster-and-more-versatile-speech-codec.html)
-- **示例音频**: [https://google-research.github.io/seanet/soundstream/examples](https://google-research.github.io/seanet/soundstream/examples/)
-- **官方开源**: [https://github.com/google/lyra](https://github.com/google/lyra)
-- **非官方实现（PyTorch）Lucidrains**: [https://github.com/lucidrains/audiolm-pytorch/blob/main/audiolm_pytorch/soundstream.py](https://github.com/lucidrains/audiolm-pytorch/blob/main/audiolm_pytorch/soundstream.py)
-- **非官方实现（Pytorch）wesbz**: [https://github.com/wesbz/SoundStream](https://github.com/wesbz/SoundStream)
 
 
 ## 参考讲解视频
