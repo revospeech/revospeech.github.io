@@ -1,5 +1,5 @@
 ---
-title: 音频生成 | 论文笔记 | AudioLM
+title: 音频生成 | 基于语言建模的 AudioLM
 date: 2023-01-16 11:40:36
 tags: [音频生成, 语音合成]
 categories: [论文笔记]

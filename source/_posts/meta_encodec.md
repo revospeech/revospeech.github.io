@@ -1,5 +1,5 @@
 ---
-title: 音频编解码 | 论文笔记 | Encodec
+title: 音频编解码 | Encodec
 date: 2023-01-15 11:40:36
 tags: [音频编解码, 音频生成, 语音合成]
 categories: [论文笔记]

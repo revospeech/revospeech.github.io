@@ -1,5 +1,5 @@
 ---
-title: 音频编解码 | 论文笔记 | SoundStream
+title: 音频编解码 | SoundStream
 date: 2023-01-14 11:40:36
 tags: [音频编解码, 音频生成]
 categories: [论文笔记]
