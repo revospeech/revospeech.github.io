@@ -179,10 +179,10 @@ SoundStream 为了提高编解码之后音频的合成质量，将语音合成�
 第一种是基于波形的判别器。采用多精度 multi-resolution 的思想，与 **MelGAN** 和 **HiFi-GAN** 中的多精度判别器类似，在原始波形、2 倍降采样和 4 倍降采样后的波形上分别进行真假判别。
 
 第二种是基于 STFT 的判别器：
-- 输入的 24 kHz 原始波形先进行 STFT 短时傅里叶变换，使用的窗长（window length）$W$ = 1024 个采样点，跳步（hop length）$H$ = 256 个采样点。经过 STFT 操作后得到二维的时频域输出（$T\times F$，$T$ 为时域采样点个数，$F$ 表示 STFT 后的 frequecy bin 个数，由选用的窗长 $W$ 决定，$F = W/2 = 512$）
+- 输入的 24 kHz 原始波形先进行 STFT 短时傅里叶变换，使用的窗长（window length）$W$ = 1024 个采样点，跳步（hop length）$H$ = 256 个采样点。经过 STFT 操作后得到二维的时频域输出（$\frac{T}{H}\times F$，$T$ 为时域采样点个数，$F$ 表示 STFT 后的 frequecy bin 个数，由选用的窗长 $W$ 决定，$F = W/2 = 512$）
 - 然后输入到一层 kernel size 为 7 × 7、输出 channel 个数为 32 的二维卷积中，之后是若干层 ResidualUnit，结构上是将编解码器中 ResidualUnit 中的一维卷积全部替换为二维卷积
 - 每个 ResiduaUnit 内部包含两层二维卷积，第一层 kernel size 为 3 × 3，第二层在不同 ResidualUnit 内是不同的：二维卷积的 stride 是 (1, 2) 和 (2, 2) 两组参数交替使用，图中$s_t$和$s_f$ 分别表示时域和频域的 stride，代表两个维度的降采样倍数；根据 stride 参数的不同，分别对应于 (3, 4) 和 (4, 4) 的 kernel size，使得 stride 较小时感受野不必过大。
-- 图示的 6 层 ResidualUnit 中，第一层二维卷积的输出维度是 C, 2C, 4C, 4C, 8C, 8C 的变化规律，而第二层二维卷积的输出维度是 2C, 4C, 4C, 8C, 8C, 16C 的变化规律。6 层 ResidualUnit 之后，时域降采样倍数为 1×2×1×2×1×2=8，频域降采样倍数为 2×2×2×2×2×2=64，二维输出的大小为 (T/8, F/64) = (T/8, 8)。
+- 图示的 6 层 ResidualUnit 中，第一层二维卷积的输出维度是 C, 2C, 4C, 4C, 8C, 8C 的变化规律，而第二层二维卷积的输出维度是 2C, 4C, 4C, 8C, 8C, 16C 的变化规律。6 层 ResidualUnit 之后，时域降采样倍数为 1×2×1×2×1×2=8，频域降采样倍数为 2×2×2×2×2×2=64，二维输出的大小为 ($\frac{T}{H\times 8}$, F/64)。
 - 最后使用全连接将其映射为单个数值的 logits，表示该波形是编解码后恢复的还是真实的音频。
 
 <!-- ![image.png](https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230222/soundstream-disc.jpg) -->
@@ -230,7 +230,7 @@ FiLM 的输入是上一层网络的特征，如果用$a_{n,c}$表示前一层第
 
 $$a_{n,c} := \gamma_{n,c} a_{n,c} + \beta_{n,c}$$
 
-其中$\gamma_{n,c}$$\beta_{n,c}$分别表示加权系数和偏置，计算过程：前一层每帧对应一个二维 one-hot 向量，代表该时间位置是否进行降噪，然后二维 one-shot 经过线性层可以得到每个位置的降噪程度系数 (denoising level)，输出即为$\gamma_{n,c}$和$\beta_{n,c}$。这么设计能够让模型在不同时间进行不同层级的降噪。
+其中$\gamma_{n,c}$, $\beta_{n,c}$分别表示加权系数和偏置，计算过程：前一层每帧对应一个二维 one-hot 向量，代表该时间位置是否进行降噪，然后二维 one-shot 经过线性层可以得到每个位置的降噪程度系数 (denoising level)，输出即为$\gamma_{n,c}$和$\beta_{n,c}$。这么设计能够让模型在不同时间进行不同层级的降噪。
 
 ----
 
