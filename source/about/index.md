@@ -4,6 +4,8 @@ date: 2023-01-01
 ---
 
 <img align="right" src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230225/mp_qrcode_art_title.jpg" width = "220"/>
+<img align="right" src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230528/image截屏2023-05-28 17.20.22.2sna9dv5wb4.jpg" width = "223"/>
+
 
 <br>
 <br>
@@ -28,7 +30,8 @@ date: 2023-01-01
 + **行业动态**：分享有关智能语音的最新动态和发展趋势，包括但不限于：行业应用案例、新产品和新技术等等。
 
 我们的目标是：提供高质量的技术内容和行业分析，与读者一同学习进步，共同推动智能语音及相关技术的发展和进步。
-<!-- 
+
+
 ### 团队成员：里海
 
 <img align="right" src="https://cdn.staticaly.com/gh/revospeech/image-hosting@master/20230227/timeline2.jpg" width = "350"/>
@@ -59,7 +62,7 @@ date: 2023-01-01
 |  :---:  |  :---: |  :---:  |
 | [清华大学 电子工程系](https://www.ee.tsinghua.edu.cn/) <br> 2014 年 8 月至 2018 年 7 月 <br> 工学学士学位 | [清华大学 工业工程系 统计学研究中心](https://www.ie.tsinghua.edu.cn/kxyj/yjs/qhdxtjxyjzx.htm) <br> 2016 年 8 月至 2018 年 7 月 <br> 统计学辅修学位 | [清华大学 电子工程系](https://www.ee.tsinghua.edu.cn/) <br> 2018 年 8 月至 2020 年 8 月 <br> 工程硕士学位 |
 
-##### 荣誉奖项
+<!-- ##### 荣誉奖项
 
 - 2019 年清华大学媒体大数据认知计算研究中心 学术新秀奖
 - 2019 年 OpenSAT 国际语音评测低资源关键词检索 国际第二名
